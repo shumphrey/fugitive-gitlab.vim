@@ -19,18 +19,28 @@ if exists('g:loaded_fugitive_gitlab')
 endif
 let g:loaded_fugitive_gitlab = 1
 
-if !exists('g:fugitive_experimental_browse_handlers')
-    let g:fugitive_experimental_browse_handlers = []
+if !exists('g:fugitive_gitlab_domains')
+    finish
 endif
 
-function! s:gitlab_fugitive_handler(repo,url,rev,commit,path,type,line1,line2)
-    let path    = a:path
+
+if !exists('g:fugitive_browse_handlers')
+    let g:fugitive_browse_handlers = []
+endif
+
+function! s:gitlab_fugitive_handler(opts, ...)
+" repo,url,rev,commit,path,type,line1,line2)
+    let opts  = a:opts
+    let path  = get(a:opts, 'path')
+    let line1 = get(a:opts, 'line1')
+    let url   = get(a:opts, 'url')
+
     let domain_pattern = ''
     for domain in g:fugitive_gitlab_domains
         let domain_pattern .= '\|' . escape(split(domain, '://')[-1], '.')
     endfor
     
-    let rep = matchstr(a:url,'^\%(https\=://\|git://\|git@\)\=\zs\('.domain_pattern.'\)[/:].\{-\}\ze\%(\.git\)\=$')
+    let rep = matchstr(url,'^\%(https\=://\|git://\|git@\)\=\zs\('.domain_pattern.'\)[/:].\{-\}\ze\%(\.git\)\=$')
     if rep ==# ''
         return ''
     endif
@@ -43,12 +53,12 @@ function! s:gitlab_fugitive_handler(repo,url,rev,commit,path,type,line1,line2)
         let root = 'https://' . repo
     endif
 
-    let url = root . "/blob/master/" . path . '#L' . a:line1
+    let url = root . "/blob/master/" . path . '#L' . line1
     return url
 endfunction
 
 let temp = [function('s:gitlab_fugitive_handler')]
-call extend(temp, g:fugitive_experimental_browse_handlers)
-let g:fugitive_experimental_browse_handlers = temp
+call extend(temp, g:fugitive_browse_handlers)
+let g:fugitive_browse_handlers = temp
 
 " vim: set ts=4 sw=4 et
