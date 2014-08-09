@@ -8,11 +8,7 @@
 "
 " You need to specify the gitlab domains for your gitlab instance
 " e.g.
-"   let g:fugitive_gitlab_domains = [
-"       'http://gitlab',
-"       'http://gitlab.mydomain.com',
-"       'https://gitlab.mydomain.com'
-"   ]
+" let g:fugitive_gitlab_domains = ['http://gitlab','http://gitlab.mydomain.com','https://gitlab.mydomain.com']
 
 if exists('g:loaded_fugitive_gitlab')
     finish
