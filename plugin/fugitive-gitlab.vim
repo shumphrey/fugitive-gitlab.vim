@@ -29,10 +29,17 @@ function! s:gitlab_fugitive_handler(opts, ...)
     let opts  = a:opts
     let path  = get(a:opts, 'path')
     let line1 = get(a:opts, 'line1')
-    let url   = get(a:opts, 'url')
+    let url   = get(a:opts, 'remote')
+    let domains = exists('g:fugitive_gitlab_domains') ? g:fugitive_gitlab_domains : []
+
+    echohl Error
+    " echo string(a:opts)
+    echo url
+    echohl None
+
 
     let domain_pattern = ''
-    for domain in g:fugitive_gitlab_domains
+    for domain in domains
         let domain_pattern .= '\|' . escape(split(domain, '://')[-1], '.')
     endfor
     
