@@ -29,6 +29,7 @@ function! s:gitlab_fugitive_handler(opts, ...)
     let opts  = a:opts
     let path  = get(a:opts, 'path')
     let line1 = get(a:opts, 'line1')
+    let line2 = get(a:opts, 'line2')
     let url   = get(a:opts, 'remote')
     let domains = exists('g:fugitive_gitlab_domains') ? g:fugitive_gitlab_domains : []
 
@@ -57,6 +58,10 @@ function! s:gitlab_fugitive_handler(opts, ...)
     endif
 
     let url = root . "/blob/master/" . path . '#L' . line1
+    if line2 > 0
+      let url = url . '-' . line2
+    endif
+
     return url
 endfunction
 
