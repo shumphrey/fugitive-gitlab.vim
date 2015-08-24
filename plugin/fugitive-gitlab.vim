@@ -29,6 +29,7 @@ function! s:gitlab_fugitive_handler(opts, ...)
     let opts  = a:opts
     let path  = get(a:opts, 'path')
     let line1 = get(a:opts, 'line1')
+    let line2 = get(a:opts, 'line2')
     let url   = get(a:opts, 'remote')
     let domains = exists('g:fugitive_gitlab_domains') ? g:fugitive_gitlab_domains : []
 
@@ -56,7 +57,13 @@ function! s:gitlab_fugitive_handler(opts, ...)
         let root = 'https://' . repo
     endif
 
-    let url = root . "/blob/master/" . path . '#L' . line1
+    if !line1
+        let url = root . "/blob/master/" . path
+    elseif line1 == line2
+        let url = root . "/blob/master/" . path . '#L' . line1
+    else
+        let url = root . "/blob/master/" . path . '#L' . line1 . '-' . line2
+    endif
     return url
 endfunction
 
