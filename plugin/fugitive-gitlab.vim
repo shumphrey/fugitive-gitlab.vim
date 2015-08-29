@@ -1,6 +1,6 @@
 " fugitive-gitlab.vim - gitlab support for fugitive.vim
 " Maintainer:   Steven Humphrey <http://stevenhumphrey.uk>
-" Version:      0.0.1
+" Version:      0.0.3
 
 " Plugs in to fugitive.vim and provides a gitlab hook for :Gbrowse
 " Relies on fugitive.vim by tpope <http://tpo.pe>
@@ -38,13 +38,13 @@ function! s:gitlab_fugitive_handler(opts, ...)
         let domain_pattern .= '\|' . escape(split(domain, '://')[-1], '.')
     endfor
     
-    let rep = matchstr(url,'^\%(https\=://\|git://\|git@\)\=\zs\('.domain_pattern.'\)[/:].\{-\}\ze\%(\.git\)\=$')
-    if rep ==# ''
+    let repo = matchstr(url,'^\%(https\=://\|git://\|git@\)\=\zs\('.domain_pattern.'\)[/:].\{-\}\ze\%(\.git\)\=$')
+    if repo ==# ''
         return ''
     endif
-    let repo = substitute(rep,':', '/','')
 
-    " if the passed in domains have http, prefix that otherwise https
+    " look for http:// + repo in the domains array
+    " if it exists, prepend http, otherwise https
     if index(domains, 'http://' . matchstr(repo, '^[^:/]*')) >= 0
         let root = 'http://' . repo
     else
