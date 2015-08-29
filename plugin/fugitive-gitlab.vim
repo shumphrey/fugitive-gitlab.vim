@@ -33,12 +33,6 @@ function! s:gitlab_fugitive_handler(opts, ...)
     let url   = get(a:opts, 'remote')
     let domains = exists('g:fugitive_gitlab_domains') ? g:fugitive_gitlab_domains : []
 
-    echohl Error
-    " echo string(a:opts)
-    echo url
-    echohl None
-
-
     let domain_pattern = ''
     for domain in domains
         let domain_pattern .= '\|' . escape(split(domain, '://')[-1], '.')
