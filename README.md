@@ -2,15 +2,13 @@
 
 fugitive.vim is undoubtedly the best Git wrapper of all time.
 
-This plugin allows you to use your own gitlab instance with it.
+This plugin allows you to use it with https://gitlab.com or your own
+private gitlab instance.
 
 Install it as you would install fugitive.vim.
 
-then in your .vimrc
+To use private gitlab repositories add the follow to your .vimrc
 
-    let g:fugitive_gitlab_domains = [
-        'http://gitlab',
-        'http://gitlab.mydomain.com'
-    ]
+    let g:fugitive_gitlab_domains = ['http://mygitlab', 'http://mygitlab.mydomain.com']
 
 fugitive command :Gbrowse will now work with gitlab URLs.

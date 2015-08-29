@@ -6,18 +6,16 @@
 " Relies on fugitive.vim by tpope <http://tpo.pe>
 " See fugitive.vim for more details
 "
-" You need to specify the gitlab domains for your gitlab instance
+" If using https://gitlab.com, everything might just work.
+" If using a private gitlab, you need to specify the gitlab domains for your
+" gitlab instance.
 " e.g.
-" let g:fugitive_gitlab_domains = ['http://gitlab','http://gitlab.mydomain.com','https://gitlab.mydomain.com']
+"   let g:fugitive_gitlab_domains = ['http://gitlab','http://gitlab.mydomain.com','https://gitlab.mydomain.com']
 
 if exists('g:loaded_fugitive_gitlab')
     finish
 endif
 let g:loaded_fugitive_gitlab = 1
-
-if !exists('g:fugitive_gitlab_domains')
-    finish
-endif
 
 
 if !exists('g:fugitive_browse_handlers')
@@ -33,7 +31,7 @@ function! s:gitlab_fugitive_handler(opts, ...)
     let url   = get(a:opts, 'remote')
     let domains = exists('g:fugitive_gitlab_domains') ? g:fugitive_gitlab_domains : []
 
-    let domain_pattern = ''
+    let domain_pattern = 'gitlab\.com'
     for domain in domains
         let domain_pattern .= '\|' . escape(split(domain, '://')[-1], '.')
     endfor
