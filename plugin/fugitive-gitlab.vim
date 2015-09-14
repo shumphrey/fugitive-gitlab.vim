@@ -1,6 +1,6 @@
 " fugitive-gitlab.vim - gitlab support for fugitive.vim
-" Maintainer:   Steven Humphrey <http://stevenhumphrey.uk>
-" Version:      0.0.3
+" Maintainer:   Steven Humphrey <https://github.com/shumphrey>
+" Version:      1.0.0
 
 " Plugs in to fugitive.vim and provides a gitlab hook for :Gbrowse
 " Relies on fugitive.vim by tpope <http://tpo.pe>
@@ -11,6 +11,8 @@
 " gitlab instance.
 " e.g.
 "   let g:fugitive_gitlab_domains = ['http://gitlab','http://gitlab.mydomain.com','https://gitlab.mydomain.com']
+"
+" known to work with gitlab 7.14.1 on 2015-09-14
 
 if exists('g:loaded_fugitive_gitlab')
     finish
@@ -24,11 +26,9 @@ endif
 
 function! s:gitlab_fugitive_handler(opts, ...)
 " repo,url,rev,commit,path,type,line1,line2)
-    let opts  = a:opts
     let path  = get(a:opts, 'path')
     let line1 = get(a:opts, 'line1')
     let line2 = get(a:opts, 'line2')
-    let url   = get(a:opts, 'remote')
     let domains = exists('g:fugitive_gitlab_domains') ? g:fugitive_gitlab_domains : []
 
     let domain_pattern = 'gitlab\.com'
@@ -36,7 +36,7 @@ function! s:gitlab_fugitive_handler(opts, ...)
         let domain_pattern .= '\|' . escape(split(domain, '://')[-1], '.')
     endfor
     
-    let repo = matchstr(url,'^\%(https\=://\|git://\|git@\)\=\zs\('.domain_pattern.'\)[/:].\{-\}\ze\%(\.git\)\=$')
+    let repo = matchstr(get(a:opts, 'remote'),'^\%(https\=://\|git://\|git@\)\=\zs\('.domain_pattern.'\)[/:].\{-\}\ze\%(\.git\)\=$')
     if repo ==# ''
         return ''
     endif
@@ -50,13 +50,53 @@ function! s:gitlab_fugitive_handler(opts, ...)
         let root = 'https://' . substitute(repo,':', '/','')
     endif
 
-    if !line1
-        let url = root . "/blob/master/" . path
-    elseif line1 == line2
-        let url = root . "/blob/master/" . path . '#L' . line1
-    else
-        let url = root . "/blob/master/" . path . '#L' . line1 . '-' . line2
+    " work out what branch/commit/tag/etc we're on
+    " if file is a git/ref, we can go to a /commits gitlab url
+    " If the branch/tag doesn't exist upstream, the URL won't be valid
+    " Could check upstream refs?
+    if path =~# '^\.git/refs/heads/'
+        let branch = a:opts.repo.git_chomp('config','branch.'.path[16:-1].'.merge')[11:-1]
+        if branch ==# ''
+            return root . '/commits/' . path[16:-1]
+        else
+            return root . '/commits/' . branch
+        endif
+    elseif path =~# '^\.git/refs/.'
+        return root . '/commits/' . matchstr(path,'[^/]\+$')
+    elseif path =~# '^\.git\>'
+        return root
     endif
+
+    " Work out the commit
+    if a:opts.revision =~# '^[[:alnum:]._-]\+:'
+        let commit = matchstr(a:opts.revision,'^[^:]*')
+    elseif a:opts.commit =~# '^\d\=$'
+        let local = matchstr(a:opts.repo.head_ref(),'\<refs/heads/\zs.*')
+        let commit = a:opts.repo.git_chomp('config','branch.'.local.'.merge')[11:-1]
+        if commit ==# ''
+            let commit = local
+        endif
+    else
+        let commit = a:opts.commit
+    endif
+
+    " If buffer contains directory not file, return a /tree url
+    if a:opts.type == 'tree'
+        let url = substitute(root . '/tree/' . commit . '/' . path,'/$','', '')
+    elseif a:opts.type == 'blob'
+        let url = root . "/blob/" . commit . '/' . path
+        if line2 && line1 == line2
+            let url .= '#L'.line1
+        elseif line2
+            let url .= '#L' . line1 . '-' . line2
+        endif
+    elseif a:opts.type == 'tag'
+        let commit = matchstr(getline(3),'^tag \zs.*')
+        let url = root . '/tree/' . commit
+    else
+        let url = root . '/commit/' . commit
+    endif
+    "
     return url
 endfunction
 
