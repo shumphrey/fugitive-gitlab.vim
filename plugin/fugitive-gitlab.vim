@@ -101,8 +101,6 @@ function! s:gitlab_fugitive_handler(opts, ...)
     return url
 endfunction
 
-let temp = [function('s:gitlab_fugitive_handler')]
-call extend(temp, g:fugitive_browse_handlers)
-let g:fugitive_browse_handlers = temp
+call insert(g:fugitive_browse_handlers, function('s:gitlab_fugitive_handler'))
 
 " vim: set ts=4 sw=4 et
