@@ -43,10 +43,11 @@ function! s:gitlab_fugitive_handler(opts, ...)
 
     " look for http:// + repo in the domains array
     " if it exists, prepend http, otherwise https
+    " git/ssh URLs contain : instead of /, http ones don't contain :
     if index(domains, 'http://' . matchstr(repo, '^[^:/]*')) >= 0
-        let root = 'http://' . repo
+        let root = 'http://' . substitute(repo,':', '/','')
     else
-        let root = 'https://' . repo
+        let root = 'https://' . substitute(repo,':', '/','')
     endif
 
     if !line1
