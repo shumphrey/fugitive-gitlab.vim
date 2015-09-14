@@ -15,4 +15,4 @@ fugitive command :Gbrowse will now work with gitlab URLs.
 
 ## Requirements
 
-fugitive-gitlab.vim requires (fugitive.vim)[https://github.com/tpope/vim-fugitive] 2.1 or higher to function.
+fugitive-gitlab.vim requires [fugitive.vim](https://github.com/tpope/vim-fugitive) 2.1 or higher to function.
