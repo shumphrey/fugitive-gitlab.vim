@@ -5,6 +5,7 @@
 " Plugs in to fugitive.vim and provides a gitlab hook for :Gbrowse
 " Relies on fugitive.vim by tpope <http://tpo.pe>
 " See fugitive.vim for more details
+" Requires fugitive.vim 2.1 or greater
 "
 " If using https://gitlab.com, everything might just work.
 " If using a private gitlab, you need to specify the gitlab domains for your

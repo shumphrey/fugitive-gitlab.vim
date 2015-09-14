@@ -12,3 +12,7 @@ To use private gitlab repositories add the follow to your .vimrc
     let g:fugitive_gitlab_domains = ['http://mygitlab', 'http://mygitlab.mydomain.com']
 
 fugitive command :Gbrowse will now work with gitlab URLs.
+
+## Requirements
+
+fugitive-gitlab.vim requires (fugitive.vim)[https://github.com/tpope/vim-fugitive] 2.1 or higher to function.
