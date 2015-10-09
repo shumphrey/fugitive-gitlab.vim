@@ -1,6 +1,6 @@
 " fugitive-gitlab.vim - gitlab support for fugitive.vim
 " Maintainer:   Steven Humphrey <https://github.com/shumphrey>
-" Version:      1.0.0
+" Version:      1.1.0
 
 " Plugs in to fugitive.vim and provides a gitlab hook for :Gbrowse
 " Relies on fugitive.vim by tpope <http://tpo.pe>
@@ -26,10 +26,11 @@ if !exists('g:fugitive_browse_handlers')
 endif
 
 function! s:gitlab_fugitive_handler(opts, ...)
-" repo,url,rev,commit,path,type,line1,line2)
-    let path  = get(a:opts, 'path')
-    let line1 = get(a:opts, 'line1')
-    let line2 = get(a:opts, 'line2')
+    let path   = get(a:opts, 'path')
+    let line1  = get(a:opts, 'line1')
+    let line2  = get(a:opts, 'line2')
+    let remote = get(a:opts, 'remote')
+
     let domains = exists('g:fugitive_gitlab_domains') ? g:fugitive_gitlab_domains : []
 
     let domain_pattern = 'gitlab\.com'
@@ -37,7 +38,17 @@ function! s:gitlab_fugitive_handler(opts, ...)
         let domain_pattern .= '\|' . escape(split(domain, '://')[-1], '.')
     endfor
     
-    let repo = matchstr(get(a:opts, 'remote'),'^\%(https\=://\|git://\|git@\)\=\zs\('.domain_pattern.'\)[/:].\{-\}\ze\%(\.git\)\=$')
+    " Try and extract a domain name from the remote
+    " See https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols for the types of protocols.
+    " If we can't extract the domain, we don't understand this protocol.
+    " git://domain:path
+    " https://domain/path
+    let repo = matchstr(remote,'^\%(https\=://\|git://\|git@\)\=\zs\('.domain_pattern.'\)[/:].\{-\}\ze\%(\.git\)\=$')
+    " ssh://user@domain:port/path.git
+    if repo ==# ''
+        let repo = matchstr(remote,'^\%(ssh://\%(\w*@\)\=\)\zs\('.domain_pattern.'\).\{-\}\ze\%(\.git\)\=$')
+        let repo = substitute(repo, ':[0-9]\+', '', '')
+    endif
     if repo ==# ''
         return ''
     endif
@@ -97,7 +108,7 @@ function! s:gitlab_fugitive_handler(opts, ...)
     else
         let url = root . '/commit/' . commit
     endif
-    "
+
     return url
 endfunction
 
