@@ -27,6 +27,7 @@ endif
 
 function! s:gitlab_fugitive_handler(opts, ...)
     let path   = get(a:opts, 'path')
+    let path   = substitute(get(a:opts, 'path', ''), '^/', '', '')
     let line1  = get(a:opts, 'line1')
     let line2  = get(a:opts, 'line2')
     let remote = get(a:opts, 'remote')
@@ -67,44 +68,32 @@ function! s:gitlab_fugitive_handler(opts, ...)
     " If the branch/tag doesn't exist upstream, the URL won't be valid
     " Could check upstream refs?
     if path =~# '^\.git/refs/heads/'
-        let branch = a:opts.repo.git_chomp('config','branch.'.path[16:-1].'.merge')[11:-1]
-        if branch ==# ''
-            return root . '/commits/' . path[16:-1]
-        else
-            return root . '/commits/' . branch
-        endif
+        return root . '/commits/' . path[16:-1]
+    elseif path =~# '^\.git/refs/tags/'
+        return root . '/tags/' . path[15:-1]
     elseif path =~# '^\.git/refs/.'
-        return root . '/commits/' . matchstr(path,'[^/]\+$')
+        return root . '/commits/' . path[10:-1]
     elseif path =~# '^\.git\>'
         return root
     endif
 
     " Work out the commit
-    if a:opts.revision =~# '^[[:alnum:]._-]\+:'
-        let commit = matchstr(a:opts.revision,'^[^:]*')
-    elseif a:opts.commit =~# '^\d\=$'
-        let local = matchstr(a:opts.repo.head_ref(),'\<refs/heads/\zs.*')
-        let commit = a:opts.repo.git_chomp('config','branch.'.local.'.merge')[11:-1]
-        if commit ==# ''
-            let commit = local
-        endif
+    if a:opts.commit =~# '^\d\=$'
+        let commit = a:opts.repo.rev_parse('HEAD')
     else
         let commit = a:opts.commit
     endif
 
     " If buffer contains directory not file, return a /tree url
-    if a:opts.type == 'tree'
+    if get(a:opts, 'type', '') ==# 'tree' || a:opts.path =~# '/$'
         let url = substitute(root . '/tree/' . commit . '/' . path,'/$','', '')
-    elseif a:opts.type == 'blob'
+    elseif get(a:opts, 'type', '') ==# 'blob' || a:opts.path =~# '[^/]$'
         let url = root . "/blob/" . commit . '/' . path
         if line2 && line1 == line2
             let url .= '#L'.line1
         elseif line2
             let url .= '#L' . line1 . '-' . line2
         endif
-    elseif a:opts.type == 'tag'
-        let commit = matchstr(getline(3),'^tag \zs.*')
-        let url = root . '/tree/' . commit
     else
         let url = root . '/commit/' . commit
     endif
