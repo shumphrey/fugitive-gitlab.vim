@@ -26,7 +26,6 @@ if !exists('g:fugitive_browse_handlers')
 endif
 
 function! s:gitlab_fugitive_handler(opts, ...)
-    let path   = get(a:opts, 'path')
     let path   = substitute(get(a:opts, 'path', ''), '^/', '', '')
     let line1  = get(a:opts, 'line1')
     let line2  = get(a:opts, 'line2')
