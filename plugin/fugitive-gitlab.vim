@@ -35,7 +35,12 @@ function! s:gitlab_fugitive_handler(opts, ...)
 
     let domain_pattern = 'gitlab\.com'
     for domain in domains
-        let domain_pattern .= '\|' . escape(split(domain, '://')[-1], '.')
+        let domain = escape(split(domain, '://')[-1], '.')
+        let rel_path = matchstr(domain, '/')
+        if rel_path ==# '/'
+            let rel_path = substitute(domain,'^[^/]*/','','')
+        endif
+        let domain_pattern .= '\|' . split(domain, '/')[0] 
     endfor
     
     " Try and extract a domain name from the remote
@@ -56,10 +61,15 @@ function! s:gitlab_fugitive_handler(opts, ...)
     " look for http:// + repo in the domains array
     " if it exists, prepend http, otherwise https
     " git/ssh URLs contain : instead of /, http ones don't contain :
-    if index(domains, 'http://' . matchstr(repo, '^[^:/]*')) >= 0
-        let root = 'http://' . substitute(repo,':', '/','')
+    if rel_path ==# ''
+        let repo = substitute(repo,':','/','')
     else
-        let root = 'https://' . substitute(repo,':', '/','')
+        let repo = substitute(repo,':','/' . rel_path . '/','')
+    endif
+    if index(domains, 'http://' . matchstr(repo, '^[^:/]*')) >= 0
+        let root = 'http://' . repo
+    else
+        let root = 'https://' . repo
     endif
 
     " work out what branch/commit/tag/etc we're on
