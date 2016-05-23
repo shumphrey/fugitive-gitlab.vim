@@ -32,17 +32,22 @@ function! s:gitlab_fugitive_handler(opts, ...)
     let remote = get(a:opts, 'remote')
 
     let domains = exists('g:fugitive_gitlab_domains') ? g:fugitive_gitlab_domains : []
+    let rel_path = {}
 
     let domain_pattern = 'gitlab\.com'
     for domain in domains
         let domain = escape(split(domain, '://')[-1], '.')
-        let rel_path = matchstr(domain, '/')
-        if rel_path ==# '/'
-            let rel_path = substitute(domain,'^[^/]*/','','')
+        let domain_path = matchstr(domain, '/')
+        if domain_path ==# '/'
+            let domain_path = substitute(domain,'^[^/]*/','','')
+        else
+            let domain_path = ''
         endif
-        let domain_pattern .= '\|' . split(domain, '/')[0] 
+        let domain_root = split(domain, '/')[0]
+        let domain_pattern .= '\|' . domain_root
+        let rel_path[domain_root] = domain_path
     endfor
-    
+
     " Try and extract a domain name from the remote
     " See https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols for the types of protocols.
     " If we can't extract the domain, we don't understand this protocol.
@@ -61,10 +66,12 @@ function! s:gitlab_fugitive_handler(opts, ...)
     " look for http:// + repo in the domains array
     " if it exists, prepend http, otherwise https
     " git/ssh URLs contain : instead of /, http ones don't contain :
-    if rel_path ==# ''
+    let repo_root = escape(split(split(repo, '://')[-1],':')[0], '.')
+    let repo_path = rel_path[repo_root]
+    if repo_path ==# ''
         let repo = substitute(repo,':','/','')
     else
-        let repo = substitute(repo,':','/' . rel_path . '/','')
+       let repo = substitute(repo,':','/' . repo_path . '/','')
     endif
     if index(domains, 'http://' . matchstr(repo, '^[^:/]*')) >= 0
         let root = 'http://' . repo
