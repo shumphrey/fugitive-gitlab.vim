@@ -67,11 +67,11 @@ function! s:gitlab_fugitive_handler(opts, ...)
     " if it exists, prepend http, otherwise https
     " git/ssh URLs contain : instead of /, http ones don't contain :
     let repo_root = escape(split(split(repo, '://')[-1],':')[0], '.')
-    let repo_path = rel_path[repo_root]
+    let repo_path = get(rel_path, repo_root, '')
     if repo_path ==# ''
         let repo = substitute(repo,':','/','')
     else
-       let repo = substitute(repo,':','/' . repo_path . '/','')
+        let repo = substitute(repo,':','/' . repo_path . '/','')
     endif
     if index(domains, 'http://' . matchstr(repo, '^[^:/]*')) >= 0
         let root = 'http://' . repo
