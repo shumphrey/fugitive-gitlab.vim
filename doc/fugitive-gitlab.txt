@@ -1,0 +1,37 @@
+*fugitive-gitlab.txt*  Gitlab integration for fugitive
+
+Author:  Steven Humphrey
+License: Same terms as Vim itself (see |license|)
+
+INTRODUCTION                                    *fugitive-gitlab*
+
+This plugin to fugitive allows the |fugitive-:Gbrowse| command to
+work with gitlab.com or your private gitlab instance.
+
+See |fugitive| for documentation on |fugitive-:Gbrowse| documentation.
+
+CONFIGUTATION                                   *fugitive-gitlab-config*
+
+To use this plugin with gitlab.com, no configuration is required.
+
+To use this plugin with a private gitlab.com, add the following to your
+.vimrc
+
+  let g:fugitive_gitlab_domains = ['https://gitlab.mydomain.com']
+
+COMMANDS                                        *fugitive-gitlab-commands*
+
+fugitive-gitlab does not provide any of its own commands.
+See |fugitive| for its commands
+
+ABOUT                                           *fugitive-gitlab-about*
+
+Grab the latest version or report a bug on GitHub:
+
+https://github.com/shumphrey/fugitive-gitlab.vim
+
+See also
+
+https://github.com/tpope/vim-fugitive
+
+ vim:tw=78:et:ft=help:norl:
