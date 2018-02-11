@@ -101,9 +101,10 @@ function! s:gitlab_fugitive_handler(opts, ...)
     endif
 
     " If buffer contains directory not file, return a /tree url
-    if get(a:opts, 'type', '') ==# 'tree' || a:opts.path =~# '/$'
+    let path = get(a:opts, 'path', '')
+    if get(a:opts, 'type', '') ==# 'tree' || path =~# '/$'
         let url = substitute(root . '/tree/' . commit . '/' . path,'/$','', '')
-    elseif get(a:opts, 'type', '') ==# 'blob' || a:opts.path =~# '[^/]$'
+    elseif get(a:opts, 'type', '') ==# 'blob' || path =~# '[^/]$'
         let url = root . "/blob/" . commit . '/' . path
         if line2 && line1 == line2
             let url .= '#L'.line1
