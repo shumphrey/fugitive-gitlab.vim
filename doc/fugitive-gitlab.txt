@@ -10,6 +10,15 @@ work with gitlab.com or your private gitlab instance.
 
 See |fugitive| for documentation on |fugitive-:Gbrowse| documentation.
 
+Additionally, this plugin interacts with the Gitlab V4 API to provide
+A couple of commands for interacting with gitlab snippets.
+
+See https://docs.gitlab.com/ce/user/snippets.html and
+https://docs.gitlab.com/ce/api/project_snippets.html
+
+The gitlab snippet URL used is determined from the repository remote in the
+same fashion as :Gbrowse
+
 CONFIGUTATION                                   *fugitive-gitlab-config*
 
 To use this plugin with gitlab.com, no configuration is required.
@@ -19,10 +28,47 @@ To use this plugin with a private gitlab.com, add the following to your
 
   let g:fugitive_gitlab_domains = ['https://gitlab.mydomain.com']
 
+If you are intending to use the snippets commands, you will need a gitlab
+api key.
+
+  let g:gitlab_api_keys = {"gitab.com": "myapitoken"}
+
 COMMANDS                                        *fugitive-gitlab-commands*
 
-fugitive-gitlab does not provide any of its own commands.
-See |fugitive| for its commands
+                                        *fugitive-gitlab-:GitlabProjectSnippet*
+:GitlabProjectSnippet[!]
+
+        Pastes the current buffer to a new project snippet for this gitlab
+        repository.
+        Opens a new browser page with the new url.
+        If ! is supplied, the URL is instead copied to the clipboard.
+        Requires that gitlab snippets are turned on for this project.
+
+:{range}GitlabProjectSnippet[!]
+
+        Same as above, but only pastes the current range of selected text.
+
+:GitlabProjectSnippet @{remote}
+        
+        Force the gitlab instance to be the one specified by {remote}.
+        Otherwise, it will use the instance specified by the default remote
+        as calculated by fugitive.
+
+                                            *fugitive-gitlab-:GitlabUserSnippet*
+:GitlabUserSnippet[!]
+
+        Same as |:GitlabProjectSnippet| but pastes to a user snippet instead of
+        a project snippet.
+
+:{range}GitlabUserSnippet[!]
+
+        Same as GitlabProjectSnippet
+
+:GitlabUserSnippet @{remote}
+        
+        Force the gitlab instance to be the one specified by {remote}.
+        Otherwise, it will use the instance specified by the default remote
+        as calculated by fugitive.
 
 ABOUT                                           *fugitive-gitlab-about*
 
