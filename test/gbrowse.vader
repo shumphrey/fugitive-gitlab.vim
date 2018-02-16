@@ -6,7 +6,9 @@ Before:
     unlet! g:fugitive_gitlab_domains
 
     unlet! g:loaded_fugitive_gitlab
-    runtime plugin/fugitive-gitlab.vim
+    unlet! g:autoloaded_fugitive_gitlab
+    runtime plugin/gitlab.vim
+    runtime autoload/gitlab.vim
 
 After:
     Restore g:fugitive_gitlab_domains
