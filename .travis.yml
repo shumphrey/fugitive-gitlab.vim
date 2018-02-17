@@ -1,0 +1,22 @@
+sudo: false
+language: vim
+rvm:
+  - 2.2.3
+
+install: |
+    git clone -q --depth=1 https://github.com/vim/vim
+    git clone -q --depth=1 https://github.com/tpope/vim-fugitive.git
+    git clone -q --depth=1 https://github.com/junegunn/vader.vim.git
+
+    cd vim
+    ./configure --with-features=huge --enable-rubyinterp --enable-pythoninterp --prefix /tmp/vim
+    make
+    make install
+    cd -
+    PATH=/tmp/vim/bin:$PATH
+
+script: |
+    export LD_LIBRARY_PATH=~/.rvm/rubies/ruby-2.2.3/lib
+    ./test/run_tests.sh
+
+# vim: set ts=4 sw=4 et :

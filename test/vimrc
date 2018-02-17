@@ -1,0 +1,11 @@
+filetype off
+set rtp+=../../vader.vim/
+set rtp+=../../vim-fugitive/
+set rtp+=../vader.vim/
+set rtp+=../vim-fugitive/
+set rtp+=../
+filetype plugin indent on
+syntax enable
+set nomore
+set noswapfile
+set viminfo=
