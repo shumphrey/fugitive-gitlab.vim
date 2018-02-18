@@ -53,7 +53,7 @@ function! s:gitlab_fugitive_handler(opts, ...)
     " If we can't extract the domain, we don't understand this protocol.
     " git://domain:path
     " https://domain/path
-    let repo = matchstr(remote,'^\%(https\=://\|git://\|git@\)\=\zs\('.domain_pattern.'\)[/:].\{-\}\ze\%(\.git\)\=$')
+    let repo = matchstr(remote,'^\%(https\=://\|git://\|git@\)\%(.\{-\}@\)\=\zs\('.domain_pattern.'\)[/:].\{-\}\ze\%(\.git\)\=$')
     " ssh://user@domain:port/path.git
     if repo ==# ''
         let repo = matchstr(remote,'^\%(ssh://\%(\w*@\)\=\)\zs\('.domain_pattern.'\).\{-\}\ze\%(\.git\)\=$')
