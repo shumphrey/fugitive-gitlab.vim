@@ -12,7 +12,7 @@ After:
     Restore g:fugitive_gitlab_domains
     Restore g:fugitive_browse_handlers
 
-Execute('Gbrowse - blob'):
+Execute (Gbrowse - blob):
     let opts = {
       \'remote': 'git@gitlab.com:shumphrey/fugitive-gitlab.vim.git',
       \'commit': 'master',
@@ -23,7 +23,7 @@ Execute('Gbrowse - blob'):
 
     AssertEqual url, 'https://gitlab.com/shumphrey/fugitive-gitlab.vim/blob/master/myfile.vim'
 
-Execute('Gbrowse - blob with range'):
+Execute (Gbrowse - blob with range):
     let opts = {
       \'remote': 'git@gitlab.com:shumphrey/fugitive-gitlab.vim.git',
       \'commit': 'a935a734765575b33da6c50fe8d0175e70e0e542',
@@ -36,7 +36,7 @@ Execute('Gbrowse - blob with range'):
 
     AssertEqual url, 'https://gitlab.com/shumphrey/fugitive-gitlab.vim/blob/a935a734765575b33da6c50fe8d0175e70e0e542/myfile.vim#L1-3'
 
-Execute('Gbrowse - directory tree'):
+Execute (Gbrowse - directory tree):
     let opts = {
       \'remote': 'git@gitlab.com:shumphrey/fugitive-gitlab.vim.git',
       \'commit': 'master',
@@ -46,7 +46,7 @@ Execute('Gbrowse - directory tree'):
     let url = g:fugitive_browse_handlers[0](opts)
     AssertEqual url, 'https://gitlab.com/shumphrey/fugitive-gitlab.vim/tree/master/path1/path2'
 
-Execute('Gbrowse - commit type'):
+Execute (Gbrowse - commit type):
     let opts = {
       \'remote': 'git@gitlab.com:shumphrey/fugitive-gitlab.vim.git',
       \'commit': 'a935a734765575b33da6c50fe8d0175e70e0e542',
@@ -55,7 +55,7 @@ Execute('Gbrowse - commit type'):
     let url = g:fugitive_browse_handlers[0](opts)
     AssertEqual url, 'https://gitlab.com/shumphrey/fugitive-gitlab.vim/commit/a935a734765575b33da6c50fe8d0175e70e0e542'
 
-Execute('Gbrowse - private remote'):
+Execute (Gbrowse - private remote):
     let opts = {
       \'remote': 'git@my.gitlab.com:shumphrey/fugitive-gitlab.vim.git',
       \'commit': 'master',
@@ -73,9 +73,20 @@ Execute('Gbrowse - private remote'):
 
     unlet g:fugitive_gitlab_domains
 
-Execute('Gbrowse - https remote'):
+Execute (Gbrowse - https remote):
     let opts = {
       \'remote': 'https://gitlab.com/shumphrey/fugitive-gitlab.vim.git',
+      \'commit': 'master',
+      \'type': 'blob',
+      \'path': 'myfile.vim'
+    \}
+    let url = g:fugitive_browse_handlers[0](opts)
+
+    AssertEqual url, 'https://gitlab.com/shumphrey/fugitive-gitlab.vim/blob/master/myfile.vim'
+
+Execute (Gbrowse - https remote with @):
+    let opts = {
+      \'remote': 'https://shumphrey@gitlab.com/shumphrey/fugitive-gitlab.vim.git',
       \'commit': 'master',
       \'type': 'blob',
       \'path': 'myfile.vim'
