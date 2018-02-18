@@ -1,5 +1,7 @@
 # fugitive-gitlab.vim
 
+[![Build Status](https://travis-ci.org/shumphrey/fugitive-gitlab.vim.svg?branch=master)](https://travis-ci.org/shumphrey/fugitive-gitlab.vim)
+
 [fugitive.vim][] is undoubtedly the best Git wrapper of all time.
 
 This plugin allows you to use it with https://gitlab.com or your own
