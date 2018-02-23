@@ -217,7 +217,6 @@ function! gitlab#request(domain, path, ...) abort
         call extend(data, ['--data', '@'.temp])
     endif
 
-    call extend(data, headers)
     call extend(data, [url])
 
     let options = join(map(copy(data), 'shellescape(v:val)'), ' ')
