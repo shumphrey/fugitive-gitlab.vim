@@ -280,9 +280,19 @@ function! gitlab#omnifunc(findstart, base) abort
         endif
 
         if a:base =~# '^@'
-            let response = gitlab#members(a:base, 'project', '@'.remote)
+            if !exists('g:gitlab_members_type')
+                let g:gitlab_members_type = 'both'
+            endif
+
+            let response = []
+            if g:gitlab_members_type == 'project' || g:gitlab_members_type == 'both'
+                call extend(response, gitlab#members(a:base, 'project', '@'.remote))
+            endif
+            if g:gitlab_members_type == 'group' || g:gitlab_members_type == 'both'
+                call extend(response, gitlab#members(a:base, 'group', '@'.remote))
+            endif
+
             " This can be a bit slow as it results in two commits
-            call extend(response, gitlab#members(a:base, 'group', '@'.remote))
             return map(response, '"@".v:val.username')
         else
             if a:base =~# '^#'
