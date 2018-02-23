@@ -1,0 +1,55 @@
+Before:
+    Save g:fugitive_gitlab_domains
+    let g:fugitive_gitlab_domains = ['https://my.gitlab.com']
+
+    unlet! g:autoloaded_fugitive_gitlab
+    runtime autoload/gitlab.vim
+
+After:
+    Restore g:fugitive_gitlab_domains
+
+Execute (gitlab#homepage_for_remote - git@ url):
+    let expected = 'https://my.gitlab.com/shumphrey/fugitive-gitlab.vim'
+    let url = gitlab#homepage_for_remote('git@my.gitlab.com:shumphrey/fugitive-gitlab.vim.git')
+    AssertEqual url, expected
+
+Execute (gitlab#homepage_for_remote - http:// url):
+    let expected = 'https://my.gitlab.com/shumphrey/fugitive-gitlab.vim'
+    let url = gitlab#homepage_for_remote('https://my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    AssertEqual url, expected
+
+Execute (gitlab#homepage_for_remote - ssh://git@ url):
+    let expected = 'https://my.gitlab.com/shumphrey/fugitive-gitlab.vim'
+    let url = gitlab#homepage_for_remote('ssh://git@my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    AssertEqual url, expected
+
+Execute (gitlab#homepage_for_remote - https://user@ url):
+    let expected = 'https://my.gitlab.com/shumphrey/fugitive-gitlab.vim'
+    let url = gitlab#homepage_for_remote('https://shumphrey@my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    AssertEqual url, expected
+
+Execute (gitlab#homepage_for_remote - gitlab.com):
+    unlet g:fugitive_gitlab_domains
+    let expected = 'https://gitlab.com/shumphrey/fugitive-gitlab.vim'
+    let url1 = gitlab#homepage_for_remote('git@gitlab.com:shumphrey/fugitive-gitlab.vim.git')
+    let url2 = gitlab#homepage_for_remote('https://gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    let url3 = gitlab#homepage_for_remote('ssh://git@gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    let url4 = gitlab#homepage_for_remote('https://user@gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    AssertEqual url1, expected
+    AssertEqual url2, expected
+    AssertEqual url3, expected
+    AssertEqual url4, expected
+
+    let g:fugitive_gitlab_domains = ['https://my.gitlab.com']
+
+Execute (gitlab#api_paths_for_remote):
+    let expected = {'root': 'https://my.gitlab.com/api/v4', 'project': 'shumphrey%2Ffugitive-gitlab.vim'}
+
+    let res = gitlab#api_paths_for_remote('git@my.gitlab.com:shumphrey/fugitive-gitlab.vim.git')
+    AssertEqual res, expected
+
+    let res = gitlab#api_paths_for_remote('https://my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    AssertEqual res, expected
+
+    let res = gitlab#api_paths_for_remote('ssh://git@my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    AssertEqual res, expected
