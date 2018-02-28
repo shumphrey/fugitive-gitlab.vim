@@ -1,0 +1,21 @@
+Before:
+    Save g:fugitive_gitlab_domains
+
+    unlet! g:autoloaded_fugitive_gitlab
+    runtime autoload/gitlab.vim
+
+After:
+    Restore g:fugitive_gitlab_domains
+
+Execute (gitlab#api_paths_for_remote):
+    let g:fugitive_gitlab_domains = ['https://my.gitlab.com']
+    let expected = {'root': 'https://my.gitlab.com/api/v4', 'project': 'shumphrey%2Ffugitive-gitlab.vim'}
+
+    let res = gitlab#api_paths_for_remote('git@my.gitlab.com:shumphrey/fugitive-gitlab.vim.git')
+    AssertEqual res, expected
+
+    let res = gitlab#api_paths_for_remote('https://my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    AssertEqual res, expected
+
+    let res = gitlab#api_paths_for_remote('ssh://git@my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    AssertEqual res, expected

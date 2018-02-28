@@ -55,10 +55,16 @@ endfunction
 
 function! gitlab#homepage_for_remote(remote) abort
     let domains = exists('g:fugitive_gitlab_domains') ? g:fugitive_gitlab_domains : []
-    call map(copy(domains), 'substitute(v:val, "/$", "", "")')
+    call map(domains, 'substitute(v:val, "/$", "", "")')
     let domain_pattern = 'gitlab\.com'
+    let rel_paths = {'gitlab.com': 'https://gitlab.com'}
     for domain in domains
-        let domain_pattern .= '\|' . escape(split(domain, '://')[-1], '.')
+        let pattern = split(domain, '://')[-1]
+        " as per issue #8 gitlab hosting may have a relative path,
+        " but that won't appear in the remote
+        let pattern = substitute(pattern, '\v/.*', '', '')
+        let rel_paths[pattern] = domain
+        let domain_pattern .= '\|' . escape(pattern, '.')
     endfor
 
     " git://domain:path
@@ -67,13 +73,15 @@ function! gitlab#homepage_for_remote(remote) abort
     " ssh://git@domain/path.git
     let base = matchstr(a:remote, '^\%(https\=://\|git://\|git@\|ssh://git@\)\%(.\{-\}@\)\=\zs\('.domain_pattern.'\)[/:].\{-\}\ze\%(\.git\)\=$')
 
-    if index(domains, 'http://' . matchstr(base, '^[^:/]*')) >= 0
-        return 'http://' . tr(base, ':', '/')
-    elseif !empty(base)
-        return 'https://' . tr(base, ':', '/')
-    else
+    let base = tr(base, ':', '/')
+    let domain = substitute(base, '\v/.*', '', '')
+
+    let root = get(rel_paths, domain)
+    if empty(root)
         return ''
     endif
+
+    return substitute(base, '^'.domain, root, '')
 endfunction
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
