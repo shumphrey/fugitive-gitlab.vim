@@ -34,6 +34,8 @@ To use omnicompletion with a private gitlab repository
 
     let g:gitlab_api_keys = {'gitlab.com': 'mytoken1', 'my.gitlab.private': 'mytoken2' }
 
+Omnicompletion functionality is subject to change.
+
 ## Requirements
 
 fugitive-gitlab.vim requires a modern [fugitive.vim][].

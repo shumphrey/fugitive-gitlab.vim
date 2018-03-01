@@ -11,7 +11,7 @@ work with gitlab.com or your private gitlab instance.
 See |fugitive| for documentation on |fugitive-:Gbrowse| documentation.
 
 Additionally use |i_CTRL-X_CTRL-O| to omni-complete GitLab issues when
-editing a commit message.
+editing a commit message. This functionality is subject to change.
 
 
 CONFIGURATION                                   *fugitive-gitlab-config*

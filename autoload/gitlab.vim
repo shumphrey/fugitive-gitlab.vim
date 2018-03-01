@@ -230,7 +230,11 @@ function! gitlab#request(domain, path, ...) abort
     let options = join(map(copy(data), 'shellescape(v:val)'), ' ')
     let raw = system('curl '.options)
 
-    return gitlab#json_parse(raw)
+    let jsonres = gitlab#json_parse(raw)
+    if type(jsonres) == type({}) && !empty(get(jsonres, 'message'))
+        call s:throw(get(jsonres, 'message'))
+    endif
+    return jsonres
 endfunction
 
 function! gitlab#issues(query, type, ...) abort
@@ -288,7 +292,7 @@ function! gitlab#omnifunc(findstart, base) abort
 
         if a:base =~# '^@'
             if !exists('g:gitlab_members_type')
-                let g:gitlab_members_type = 'both'
+                let g:gitlab_members_type = 'project'
             endif
 
             let response = []
@@ -317,7 +321,11 @@ function! gitlab#omnifunc(findstart, base) abort
                 let query = substitute(a:base, '#', '', '')
             endif
 
-            let response = gitlab#issues(query, 'group', '@'.remote)
+            if !exists('g:gitlab_issues_type')
+                let g:gitlab_issues_type = 'project'
+            endif
+
+            let response = gitlab#issues(query, g:gitlab_issues_type, '@'.remote)
             if type(response) != type([])
                 call s:throw('unknown error')
             endif
