@@ -143,7 +143,7 @@ function! gitlab#json_generate(object) abort
     endif
 endfunction
 
-function! s:gitlab_api_key(root) abort
+function! gitlab#get_api_key_from_root(root) abort
     if exists('b:gitlab_api_key')
         return b:gitlab_api_key
     endif
@@ -174,7 +174,7 @@ function! gitlab#api_paths_for_remote(remote) abort
         let path = substitute(homepage, '^'.domain . '/', '', '')
         if path != homepage
             let project = substitute(path, '/', '%2F', 'g')
-            let root = domain . '/api/v4'
+            let root = domain
             break
         endif
     endfor
@@ -188,9 +188,10 @@ endfunction
 
 function! s:gitlab_project_from_repo(...) abort
     let validremote = '\.\|\.\=/.*\|[[:alnum:]_-]\+\%(://.\{-\}\)\='
-    if len(a:000) > 0
+    if a:0 > 0
         let remote = matchstr(join(a:000, ' '),'@\zs\%('.validremote.'\)$')
-    else
+    endif
+    if !exists('remote') || empty(remote)
         let remote = 'origin'
     endif
 
@@ -201,9 +202,9 @@ endfunction
 
 " Makes a request to the api and returns the resulting text
 function! gitlab#request(domain, path, ...) abort
-    let key = s:gitlab_api_key(a:domain)
+    let key = gitlab#get_api_key_from_root(a:domain)
 
-    let url = a:domain . a:path
+    let url = a:domain . '/api/v4' . a:path
 
     let headers = [
         \'PRIVATE-TOKEN: ' . key,
@@ -212,7 +213,7 @@ function! gitlab#request(domain, path, ...) abort
     \]
 
     if a:0
-        let json = gitlab#json_generate(a:0)
+        let json = gitlab#json_generate(a:1)
     endif
 
     if exists('*Post')
@@ -233,62 +234,76 @@ function! gitlab#request(domain, path, ...) abort
         call extend(data, ['-H', header])
     endfor
     if a:0
-        let temp = tempfile()
-        writefile([json], temp)
-        call extend(data, ['-XPOST'])
+        let temp = tempname()
+        call writefile([json], temp)
         call extend(data, ['--data', '@'.temp])
+    endif
+    if a:0 > 1
+        call extend(data, ['-X' . a:2])
+    elseif a:0
+        call extend(data, ['-XPOST'])
     endif
 
     call extend(data, [url])
 
     let options = join(map(copy(data), 'shellescape(v:val)'), ' ')
-    let raw = system('curl '.options)
+    silent let raw = system('curl '.options)
+    if !empty(v:shell_error)
+        call s:throw('shell error: ' . v:shell_error)
+    endif
+
+    if empty(raw)
+        call s:throw('No output from gitlab api')
+    endif
 
     let jsonres = gitlab#json_parse(raw)
-    if type(jsonres) == type({}) && !empty(get(jsonres, 'message'))
-        call s:throw(get(jsonres, 'message'))
+
+    if type(jsonres) == type({}) && has_key(jsonres, 'message')
+        call s:throw(json_encode(get(jsonres, 'message')))
     endif
+
     return jsonres
 endfunction
 
 function! gitlab#issues(query, type, ...) abort
-    let res = call('s:gitlab_project_from_repo', a:000)
+    let remote = call('s:gitlab_project_from_repo', a:000)
 
     if a:type == 'group'
-        let group = substitute(res.project, '%2F.*', '', '')
+        let group = substitute(remote.project, '%2F.*', '', '')
         let path = '/groups/' . group . '/issues'
     else
-        let path = '/projects/' . res.project . '/issues'
+        let path = '/projects/' . remote.project . '/issues'
     endif
 
     let params = '?scope=all&state=opened&per_page=100'
     let params .= '&search='.a:query
-    return gitlab#request(res.root, path . params)
+    return gitlab#request(remote.root, path . params)
 endfunction
 
 " when querying members "collaborators"
 " we probably want both project members and group members
 function! gitlab#members(query, type, ...) abort
-    let res = call('s:gitlab_project_from_repo', a:000)
+    let remote = call('s:gitlab_project_from_repo', a:000)
     if a:type == 'group'
-        let group = substitute(res.project, '%2F.*', '', '')
+        let group = substitute(remote.project, '%2F.*', '', '')
         let path = '/groups/' . group . '/members'
     else
-        let path = '/projects/' . res.project . '/members'
+        let path = '/projects/' . remote.project . '/members'
     endif
 
     let params = '?per_page=100&query='.substitute(a:query, '@', '', '')
-    return gitlab#request(res.root, path . params)
+    return gitlab#request(remote.root, path . params)
 endfunction
 
 function! gitlab#contributors(...) abort
-    let res = call('s:gitlab_project_from_repo', a:000)
+    let remote = call('s:gitlab_project_from_repo', a:000)
 
-    let path = '/projects/' . res.project . '/repository/contributors'
+    let path = '/projects/' . remote.project . '/repository/contributors'
     let params = '?per_page=100'
 
-    return gitlab#request(res.root, path . params)
+    return gitlab#request(remote.root, path . params)
 endfunction
+
 
 let s:reference = '\<\%(\c\%(clos\|resolv\|referenc\)e[sd]\=\|\cfix\%(e[sd]\)\=\)\>'
 function! gitlab#omnifunc(findstart, base) abort
@@ -351,4 +366,4 @@ function! s:throw(string) abort
     throw v:errmsg
 endfunction
 
-" vim: set ts=4 sw=4 et
+" vim: set ts=4 sw=4 et foldmethod=indent foldnestmax=1 :

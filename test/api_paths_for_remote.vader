@@ -9,7 +9,7 @@ After:
 
 Execute (gitlab#api_paths_for_remote):
     let g:fugitive_gitlab_domains = ['https://my.gitlab.com']
-    let expected = {'root': 'https://my.gitlab.com/api/v4', 'project': 'shumphrey%2Ffugitive-gitlab.vim'}
+    let expected = {'root': 'https://my.gitlab.com', 'project': 'shumphrey%2Ffugitive-gitlab.vim'}
 
     let res = gitlab#api_paths_for_remote('git@my.gitlab.com:shumphrey/fugitive-gitlab.vim.git')
     AssertEqual res, expected

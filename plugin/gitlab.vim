@@ -54,4 +54,41 @@ augroup gitlab
         \ endif
 augroup END
 
+let g:gitlab_snippets = {}
+
+" autocompletion for :Gsnip command
+" completes the previous snippet id and the remote name
+function! s:write_snippet_comp(lead, cmd, pos) abort
+    let list = ['--project', '-p', '-u']
+
+    let remotes = keys(g:gitlab_api_keys)
+    try
+        let repo = fugitive#repo()
+        call extend(remotes, split(repo.git_chomp('remote', 'show'), "\n"))
+    catch
+    endtry
+
+    call extend(list, map(remotes, '"@" . v:val'))
+
+    return filter(list, 'v:val =~# "^' . a:lead . '"')
+endfunction
+
+function! s:write_snippet_list_comp(lead, cmd, pos) abort
+    let list = ['--project', '-p']
+
+    let remotes = keys(g:gitlab_api_keys)
+    try
+        let repo = fugitive#repo()
+        call extend(remotes, split(repo.git_chomp('remote', 'show'), "\n"))
+    catch
+    endtry
+
+    call extend(list, map(remotes, '"@" . v:val'))
+
+    return filter(list, 'v:val =~# "^' . a:lead . '"')
+endfunction
+
+command! -nargs=* -complete=customlist,s:write_snippet_list_comp GsnipList call gitlab#snippet#list(<f-args>)
+command! -bar -bang -range=% -nargs=* -complete=customlist,s:write_snippet_comp Gsnip call gitlab#snippet#write(<bang>0, <line1>, <line2>, <f-args>)
+
 " vim: set ts=4 sw=4 et
