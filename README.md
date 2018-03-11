@@ -49,6 +49,10 @@ API features require a gitlab instance with v4 of the API.
 
     set completeopt-=preview
 
+> Why doesn't this plugin have a pun name?
+
+I couldn't think of one.
+
 ## License
 
 Copyright (c) Steven Humphrey.  Distributed under the same terms as Vim itself.
