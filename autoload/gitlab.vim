@@ -247,7 +247,9 @@ function! gitlab#request(domain, path, ...) abort
     call extend(data, [url])
 
     let options = join(map(copy(data), 'shellescape(v:val)'), ' ')
+    let b:gitlab_last_curl = 'curl '.options
     silent let raw = system('curl '.options)
+    let b:gitlab_last_raw = raw
     if !empty(v:shell_error)
         call s:throw('shell error: ' . v:shell_error)
     endif

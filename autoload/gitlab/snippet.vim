@@ -23,8 +23,8 @@ function! s:gitlab_remote(...) abort
             if exists('g:gitlab_remote')
                 let default_remote = g:gitlab_remote
             endif
-            let url = fugitive#buffer()#repo().git_chomp('remote.'.default_remote.'.origin.url')
-            let root = gitlab#homepage_for_remote(url)
+            let url = fugitive#buffer().repo().config('remote.'.default_remote.'.url')
+            return gitlab#api_paths_for_remote(url)
         catch
             if exists('g:gitlab_api_url')
                 let root = g:gitlab_api_url
@@ -54,8 +54,7 @@ function! s:gitlab_remote(...) abort
             endtry
             if exists('url') && !empty(url)
                 try
-                    let res = gitlab#api_paths_for_remote(url)
-                    return res
+                    return gitlab#api_paths_for_remote(url)
                 catch
                     call s:throw('No API key for ' . url)
                 endtry
@@ -75,25 +74,53 @@ function! s:gitlab_remote(...) abort
 endfunction
 
 function! gitlab#snippet#write(bang, line1, line2, ...) abort
-    let remote = call('s:gitlab_remote', a:000)
-
-    let text = join(getline(a:line1, a:line2), "\n")
-
-    let data = {
-                \"title": expand('%'),
-                \ "file_name": expand('%'),
-                \ "description": "fugitive-gitlab generated snippet"
-                \}
-
-    let type = 'user'
-    if type == 'project'
-        let data["code"] = text
-    else
-        let data["content"] = text
+    let options = s:parse_args(a:000)
+    if type(options) != type({})
+        return
     endif
 
-    echon "writing snippet ... "
-    call s:set_snippet(remote.root, '/snippets', data, 'POST')
+    try
+        let remote = s:gitlab_remote(get(options, 'remote', ''))
+    catch
+        call s:error(v:errmsg)
+        return
+    endtry
+
+    let text = join(getline(a:line1, a:line2), "\n")
+    let type = get(options, 'type', 'user')
+
+    let title = get(options, 'title', expand('%'))
+    let desc  = get(options, 'description', 'fugitive-gitlab generated snippet')
+    let name  = get(options, 'name', expand('%'))
+    if empty(title)
+        let title = 'empty.txt'
+    endif
+
+    " let file_name = s:parse_string_arg(joinedargs, 'f', expand('%'))
+    " let descr = s:parse_string_arg(joinedargs, 'd', 'fugitive-gitlab generated snippet')
+    " let file_name = expand('%')
+    " let descr = 'fugitive-gitlab generated snippet'
+
+    let data = {
+        \'title': title,
+        \'file_name': name,
+        \'description': desc
+    \}
+
+    if type == 'project'
+        if !has_key(remote, 'project')
+            call s:throw('Not a git repository, cannot work out project')
+        endif
+        let data['code'] = text
+        let data['visibility'] = 'private'
+        let path = '/projects/' . remote.project . '/snippets'
+    else
+        let data['content'] = text
+        let path = '/snippets'
+    endif
+
+    echon 'writing snippet ... '
+    call s:set_snippet(remote.root, path, data, 'POST')
 endfunction
 
 "[{"id":1700538,"title":"test","file_name":"test.md","description":"test project snippet","author":{"id":1672441,"name":"Steven Humphrey","username":"shumphrey","state":"active","avatar_url":"https://secure.gravatar.com/avatar/a5a6c4ee136cf136c6c379116a0caaeb?s=80\u0026d=identicon","web_url":"https://gitlab.com/shumphrey"},"updated_at":"2018-02-23T19:37:07.150Z","created_at":"2018-02-23T19:37:07.150Z","project_id":5360561,"web_url":"https://gitlab.com/shumphrey/fugitive-gitlab.vim/snippets/1700538"}]
@@ -119,10 +146,23 @@ function! gitlab#snippet#list(...) abort
 
     let remote = call('s:gitlab_remote', a:000)
     let snippets = gitlab#request(remote.root, '/snippets')
-    let output = map(copy(snippets), 'v:val.id . " ". v:val.title . " - " . v:val.description')
+
+    let output = []
     let g:gitlab_snippets = {}
     for snippet in snippets
         let snippet['remote'] = remote
+        " 10.7 has project_id, 10.4 does not?
+        " work around for gitlab's lacking project_id, work it out from the
+        " URL. Also gives us the nicer name or project instead of id
+        if match(snippet.web_url, remote.root . '/snippets') < 0
+            let url = snippet.web_url
+            let url = substitute(url, remote.root . '/', '', '')
+            let project = substitute(url, '/snippets.*', '', 'g')
+            let snippet['project_id'] = substitute(project, '/', '%2F', 'g')
+        else
+            let snippet['project_id'] = v:null
+        endif
+        call add(output, s:snippet_list_output_line(snippet))
         let g:gitlab_snippets[snippet.id] = snippet
     endfor
     call setline(1, output)
@@ -138,15 +178,13 @@ function! gitlab#snippet#list(...) abort
     nohlsearch
 
     nnoremap <buffer> <silent> <CR> :exe <SID>gitlab_snippet_load()<CR>
-    nnoremap <buffer> <silent> o :exe <SID>gitlab_snippet_load()<CR>
+    " nnoremap <buffer> <silent> o :exe <SID>gitlab_snippet_load()<CR>
     nnoremap <buffer> <silent> b :exe <SID>gitlab_snippet_browse()<CR>
     nnoremap <buffer> <silent> D :exe <SID>gitlab_snippet_delete()<CR>
     nnoremap <buffer> <silent> dd :exe <SID>gitlab_snippet_delete()<CR>
     " nnoremap <buffer> <silent> y :exe <SID>gitlab_snippet_yank()<CR>
     nnoremap <buffer> <silent> q :bwipeout<CR>
     nnoremap <buffer> <silent> <esc> :bwipeout<CR>
-
-    " let g:gitlab_snippetlist_bufnr = bufnr('')
 
     redraw | echon ''
 endfunction
@@ -176,7 +214,7 @@ function! s:gitlab_snippet_load() abort
     let temp = tempname()
 
     call mkdir(temp)
-    let tempsnippet = temp . '/gitlabsnippet.' . name
+    let tempsnippet = temp . '/gitlabsnippet.' . fnamemodify(name, ':t')
 
     let key = gitlab#get_api_key_from_root(snippet.remote.root)
 
@@ -215,7 +253,12 @@ function! s:gitlab_snippet_delete() abort
         call s:throw('Invalid snippet id?')
     endif
 
-    let path = '/snippets/' . id
+    if !empty(snippet.project_id)
+        let path = '/projects/' . snippet.project_id . '/snippets/' . id
+    else
+        let path = '/snippets/' . id
+    endif
+
     call gitlab#request(snippet.remote.root, path, {}, 'DELETE')
 
     setlocal modifiable
@@ -230,19 +273,17 @@ function! s:update_gitlab_snippet() abort
 
     let lines = join(getline(1, '$'), "\n")
 
-    let remote = call('s:gitlab_remote', a:000)
-
     let id  = get(b:gitlab_snippet, 'id')
     let pid = get(b:gitlab_snippet, 'project_id')
-    if pid
-        let data = {"code": lines}
+    if !empty(pid)
+        let data = {'code': lines}
         let path = '/projects/' . pid . '/snippets/' . id
     else
-        let data = {"content": lines}
+        let data = {'content': lines}
         let path = '/snippets/' . id
     endif
 
-    call s:set_snippet(remote.root, path, data, 'PUT')
+    call s:set_snippet(b:gitlab_snippet.remote.root, path, data, 'PUT')
 endfunction
 
 function! s:set_snippet(root, path, data, method) abort
@@ -255,6 +296,10 @@ function! s:set_snippet(root, path, data, method) abort
     endif
 
     let g:gitlab_snippets[res.id] = res
+    redraw!
+    echom res.web_url
+
+    return res
 endfunction
 
 function! s:gitlab_snippet_list_syntax() abort
@@ -265,9 +310,64 @@ function! s:gitlab_snippet_list_syntax() abort
     hi def link GitlabSnippetText                 String
 endfunction
 
+" 1000[P] - Project snippet title
+" Should I include project name some how...
+function! s:snippet_list_output_line(snippet) abort
+    let output = a:snippet.id
+    if has_key(a:snippet, 'project_id')
+        let output .= (!empty(a:snippet.project_id) ? '[P] ' : '[U] ')
+    else
+        let output .= ' '
+    endif
+    let output .= a:snippet.title . ' - ' . a:snippet.description
+    return output
+endfunction
+
+function! s:parse_args(args) abort
+    let options = {}
+
+    let index = 0
+    while index < len(a:args)
+        let arg = a:args[index]
+        let next = get(a:args, index + 1)
+        if next =~# '^-' || next =~# '^@'
+            let next = 0
+        endif
+
+        if arg =~# '^@.'
+            let options['remote'] = arg
+        elseif arg =~# '^-p$'
+            let options['type'] = 'project'
+        elseif arg =~# '^-t$' && !empty(next)
+            let index = index + 1
+            let options['title'] = next
+        elseif arg =~# '^-d$' && !empty(next)
+            let index = index + 1
+            let options['description'] = next
+        elseif arg =~# '^-f$' && !empty(next)
+            let index = index + 1
+            let options['name'] = next
+        elseif arg =~# '^-v$' && !empty(next)
+            let index = index + 1
+            let options['visibility'] = next
+        else
+            call s:error('Invalid arguments')
+            return 0
+        endif
+
+        let index = index + 1
+    endwhile
+
+    return options
+endfunction
+
 function! s:throw(string) abort
     let v:errmsg = 'gitlab: '.a:string
     throw v:errmsg
 endfunction
 
+function! s:error(string)
+    let v:errmsg = a:string
+    echohl ErrorMsg | echomsg a:string | echohl None
+endfunction
 " vim: set ts=4 sw=4 et foldmethod=indent foldnestmax=1 :

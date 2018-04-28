@@ -59,7 +59,7 @@ let g:gitlab_snippets = {}
 " autocompletion for :Gsnip command
 " completes the previous snippet id and the remote name
 function! s:write_snippet_comp(lead, cmd, pos) abort
-    let list = ['--project', '-p', '-u']
+    let list = ['-p', '-u']
 
     let remotes = keys(g:gitlab_api_keys)
     try
@@ -73,8 +73,8 @@ function! s:write_snippet_comp(lead, cmd, pos) abort
     return filter(list, 'v:val =~# "^' . a:lead . '"')
 endfunction
 
-function! s:write_snippet_list_comp(lead, cmd, pos) abort
-    let list = ['--project', '-p']
+function! s:list_snippet_comp(lead, cmd, pos) abort
+    let list = []
 
     let remotes = keys(g:gitlab_api_keys)
     try
@@ -88,7 +88,7 @@ function! s:write_snippet_list_comp(lead, cmd, pos) abort
     return filter(list, 'v:val =~# "^' . a:lead . '"')
 endfunction
 
-command! -nargs=* -complete=customlist,s:write_snippet_list_comp GsnipList call gitlab#snippet#list(<f-args>)
+command! -nargs=* -complete=customlist,s:list_snippet_comp GsnipList call gitlab#snippet#list(<f-args>)
 command! -bar -bang -range=% -nargs=* -complete=customlist,s:write_snippet_comp Gsnip call gitlab#snippet#write(<bang>0, <line1>, <line2>, <f-args>)
 
 " vim: set ts=4 sw=4 et
