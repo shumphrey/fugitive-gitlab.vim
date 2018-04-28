@@ -140,8 +140,9 @@ function! gitlab#snippet#list(...) abort
     nnoremap <buffer> <silent> <CR> :exe <SID>gitlab_snippet_load()<CR>
     nnoremap <buffer> <silent> o :exe <SID>gitlab_snippet_load()<CR>
     nnoremap <buffer> <silent> b :exe <SID>gitlab_snippet_browse()<CR>
-    nnoremap <buffer> <silent> d :exe <SID>gitlab_snippet_delete()<CR>
-    nnoremap <buffer> <silent> y :exe <SID>gitlab_snippet_yank()<CR>
+    nnoremap <buffer> <silent> D :exe <SID>gitlab_snippet_delete()<CR>
+    nnoremap <buffer> <silent> dd :exe <SID>gitlab_snippet_delete()<CR>
+    " nnoremap <buffer> <silent> y :exe <SID>gitlab_snippet_yank()<CR>
     nnoremap <buffer> <silent> q :bwipeout<CR>
     nnoremap <buffer> <silent> <esc> :bwipeout<CR>
 
@@ -200,6 +201,27 @@ function! s:gitlab_snippet_load() abort
 
     let b:gitlab_snippet = snippet
 endfunction!
+
+function! s:gitlab_snippet_delete() abort
+    let line = getline('.')
+    let id   = matchstr(line, '\v^\d+')
+
+    if confirm('Delete snippet?', "&No\n&Yes") == 1
+        return
+    endif
+
+    let snippet = remove(g:gitlab_snippets, id)
+    if empty(snippet)
+        call s:throw('Invalid snippet id?')
+    endif
+
+    let path = '/snippets/' . id
+    call gitlab#request(snippet.remote.root, path, {}, 'DELETE')
+
+    setlocal modifiable
+    silent del
+    setlocal nomodifiable
+endfunction
 
 function! s:update_gitlab_snippet() abort
     if !exists('b:gitlab_snippet')

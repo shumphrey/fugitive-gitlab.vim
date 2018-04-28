@@ -252,6 +252,11 @@ function! gitlab#request(domain, path, ...) abort
         call s:throw('shell error: ' . v:shell_error)
     endif
 
+    " Delete returns 204 no content, no json
+    if a:0 > 1 && a:2 == 'DELETE'
+        return
+    endif
+
     if empty(raw)
         call s:throw('No output from gitlab api')
     endif
