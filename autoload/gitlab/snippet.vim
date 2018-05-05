@@ -297,6 +297,10 @@ function! s:set_snippet(root, path, data, method) abort
 
     let g:gitlab_snippets[res.id] = res
     redraw!
+
+    if has('clipboard')
+        let @+ = res.web_url
+    endif
     echom res.web_url
 
     return res
