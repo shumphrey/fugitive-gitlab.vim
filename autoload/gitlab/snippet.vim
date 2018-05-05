@@ -188,7 +188,7 @@ function! gitlab#snippet#list(...) abort
     nnoremap <buffer> <silent> b :exe <SID>listaction_browse()<CR>
     nnoremap <buffer> <silent> D :exe <SID>listaction_delete()<CR>
     nnoremap <buffer> <silent> dd :exe <SID>listaction_delete()<CR>
-    " nnoremap <buffer> <silent> y :exe <SID>listaction_yank()<CR>
+    nnoremap <buffer> <silent> y :exe <SID>listaction_yank()<CR>
     nnoremap <buffer> <silent> q :bwipeout<CR>
     nnoremap <buffer> <silent> <esc> :bwipeout<CR>
 
@@ -209,35 +209,7 @@ function! s:listaction_load() abort
     let id   = matchstr(line, '\v^\d+')
 
     let snippet = g:gitlab_snippets[id]
-    if empty(snippet)
-        call s:throw('Invalid snippet id?')
-    endif
-
-    let name = snippet.file_name
-    if empty(name)
-        name = 'empty.txt'
-    endif
-    let temp = tempname()
-
-    call mkdir(temp)
-    let tempsnippet = temp . '/gitlabsnippet.' . fnamemodify(name, ':t')
-
-    let key = gitlab#get_api_key_from_root(snippet.remote.root)
-
-    let headers = [
-        \'PRIVATE-TOKEN: ' . key,
-        \'Content-Type: application/json',
-        \'Accept: application/json',
-    \]
-
-    let data = ['-q', '--silent', '-A', 'fugitive-gitlab.vim']
-    for header in headers
-        call extend(data, ['-H', header])
-    endfor
-    call extend(data, [snippet.raw_url])
-
-    let options = join(map(copy(data), 'shellescape(v:val)'), ' ')
-    call system('curl '.options .'> '.shellescape(tempsnippet))
+    let tempsnippet = s:download_snippet(snippet)
 
     exe 'wincmd l|edit '.tempsnippet
 
@@ -275,12 +247,11 @@ endfunction
 function! s:listaction_browse() abort
     let line = getline('.')
     let id   = matchstr(line, '\v^\d+')
-
     let snippet = g:gitlab_snippets[id]
-    echo snippet
-    let url = snippet.web_url
 
+    let url = snippet.web_url
     echom url
+
     try
         if exists(':Browse') == 2
             Browse url
@@ -298,6 +269,17 @@ function! s:listaction_browse() abort
         call s:error(v:errmsg)
         return
     endtry
+endfunction
+
+function! s:listaction_yank() abort
+    let line = getline('.')
+    let id   = matchstr(line, '\v^\d+')
+    let snippet = g:gitlab_snippets[id]
+
+    let tempsnippet = s:download_snippet(snippet)
+    let lines = readfile(tempsnippet)
+
+    call setreg(v:register, lines)
 endfunction
 
 function! s:update_gitlab_snippet() abort
@@ -338,6 +320,41 @@ function! s:set_snippet(root, path, data, method) abort
     echom res.web_url
 
     return res
+endfunction
+
+function! s:download_snippet(snippet) abort
+    if empty(a:snippet)
+        call s:thow('Invalid snippet id?')
+        return
+    endif
+
+    let name = a:snippet.file_name
+    if empty(name)
+        name = 'empty.txt'
+    endif
+    let temp = tempname()
+
+    call mkdir(temp)
+    let tempsnippet = temp . '/gitlabsnippet.' . fnamemodify(name, ':t')
+
+    let key = gitlab#get_api_key_from_root(a:snippet.remote.root)
+
+    let headers = [
+        \'PRIVATE-TOKEN: ' . key,
+        \'Content-Type: application/json',
+        \'Accept: application/json',
+    \]
+
+    let data = ['-q', '--silent', '-A', 'fugitive-gitlab.vim']
+    for header in headers
+        call extend(data, ['-H', header])
+    endfor
+    call extend(data, [a:snippet.raw_url])
+
+    let options = join(map(copy(data), 'shellescape(v:val)'), ' ')
+    call system('curl '.options .'> '.shellescape(tempsnippet))
+
+    return tempsnippet
 endfunction
 
 function! s:gitlab_snippet_list_syntax() abort
