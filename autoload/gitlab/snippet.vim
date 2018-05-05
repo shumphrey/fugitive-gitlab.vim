@@ -86,46 +86,95 @@ function! gitlab#snippet#write(bang, line1, line2, ...) abort
         return
     endtry
 
+    let update = get(options, 'update', 0)
     let text = join(getline(a:line1, a:line2), "\n")
     let type = get(options, 'type', 'user')
 
-    let title = get(options, 'title', expand('%'))
-    let desc  = get(options, 'description', 'fugitive-gitlab generated snippet')
-    let name  = get(options, 'name', expand('%'))
-    if empty(title)
-        let title = 'empty.txt'
-    endif
-
-    let data = {
-        \'title': title,
-        \'file_name': name,
-        \'description': desc
-    \}
-
-    if type == 'project'
-        if !has_key(remote, 'project')
-            call s:error('Not a git repository, cannot work out project')
+    if update
+        if !has_key(b:, 'gitlab_snippet')
+            call s:error('No previous snippet to update')
             return
         endif
-        " project must have visibility set
-        let data['visibility'] = get(options, 'visibility', get(g:, 'gitlab_default_visibility', 'public'))
-        let data['code'] = text
-        let path = '/projects/' . remote.project . '/snippets'
-    else
-        " user snippets don't need to set visibility
-        let visibility = get(options, 'visibility', get(g:, 'gitlab_default_visibility'))
+        if type != 'user'
+            call s:error('Cannot modify snippet type')
+            return
+        endif
+
+        let title      = get(options, 'title')
+        let desc       = get(options, 'description')
+        let name       = get(options, 'name')
+        let visibility = get(options, 'visibility')
+        let remote     = b:gitlab_snippet.remote
+
+        let data = {}
+        if !empty(title)
+            let data['title'] = title
+        endif
+        if !empty(desc)
+            let data['description'] = desc
+        endif
+        if !empty(name)
+            let data['file_name'] = name
+        endif
         if !empty(visibility)
             let data['visibility'] = visibility
         endif
-        let data['content'] = text
-        let path = '/snippets'
+
+        if has_key(b:gitlab_snippet, 'project_id')
+            let data['code'] = text
+            let path = '/projects/' . b:gitlab_snippet.project_id . '/snippets/' . b:gitlab_snippet.id
+        else
+            let data['content'] = text
+            let path = '/snippets/' . b:gitlab_snippet.id
+        endif
+
+        let method = 'PUT'
+
+        echon 'updating snippet ... '
+    else
+        let title = get(options, 'title', expand('%'))
+        let desc  = get(options, 'description', 'fugitive-gitlab generated snippet')
+        let name  = get(options, 'name', expand('%'))
+        if empty(title)
+            let title = 'empty.txt'
+        endif
+
+        let data = {
+            \'title': title,
+            \'file_name': name,
+            \'description': desc
+        \}
+
+        if type == 'project'
+            if !has_key(remote, 'project')
+                call s:error('Not a git repository, cannot work out project')
+                return
+            endif
+            " project must have visibility set
+            let data['visibility'] = get(options, 'visibility', get(g:, 'gitlab_default_visibility', 'public'))
+            let data['code'] = text
+            let path = '/projects/' . remote.project . '/snippets'
+        else
+            " user snippets don't need to set visibility
+            let visibility = get(options, 'visibility', get(g:, 'gitlab_default_visibility'))
+            if !empty(visibility)
+                let data['visibility'] = visibility
+            endif
+            let data['content'] = text
+            let path = '/snippets'
+        endif
+
+        let method = 'POST'
+
+        echon 'writing snippet ... '
     endif
 
-    echon 'writing snippet ... '
     try
-        call s:set_snippet(remote.root, path, data, 'POST')
+        let b:gitlab_snippet = s:set_snippet(remote.root, path, data, method)
+        let b:gitlab_snippet.remote = remote
     catch /^gitlab:/
         call s:error(v:errmsg)
+        return
     endtry
 endfunction
 
@@ -421,6 +470,8 @@ function! s:parse_args(args) abort
         elseif arg =~# '^-v$' && !empty(next)
             let index = index + 1
             let options['visibility'] = next
+        elseif arg =~# '^-u'
+            let options['update'] = 1
         else
             call s:error('Invalid arguments')
             return 0
