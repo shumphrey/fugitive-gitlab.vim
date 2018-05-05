@@ -3,7 +3,7 @@
 Author:  Steven Humphrey <https://github.com/shumphrey>
 License: Same terms as Vim itself (see |license|)
 
-INTRODUCTION                                    *fugitive-gitlab*
+INTRODUCTION                                            *fugitive-gitlab*
 
 This plugin to fugitive allows the |:GBrowse| command to
 work with gitlab.com or your private gitlab instance.
@@ -13,8 +13,9 @@ See |fugitive| for documentation on |:GBrowse| documentation.
 Additionally use |i_CTRL-X_CTRL-O| to omni-complete GitLab issues when
 editing a commit message. This functionality is subject to change.
 
+This plugin also interacts with gitlab snippets via the snippets API.
 
-CONFIGURATION                                   *fugitive-gitlab-config*
+CONFIGURATION                                       *fugitive-gitlab-config*
 
 To use |:GBrowse| with gitlab.com, no configuration is required.
 
@@ -24,18 +25,83 @@ To use it with a private gitlab.com, add the following to your
   let g:fugitive_gitlab_domains = ['https://gitlab.mydomain.com']
 
 For |i_CTRL-X_CTRL-O| commit message omnicompletion of GitLab issues
-and project/group members, you will need to create a GitLab access token
+and project/group members, or for Gitlab Snippets support, you will need
+to create a GitLab access token
 https://gitlab.com/profile/personal_access_tokens
 with api permissions.
 
   let g:gitlab_api_keys = {'gitlab.com', 'token', 'gitlab.mydomain.com': 'token2'}
 
-COMMANDS                                        *fugitive-gitlab-commands*
+OMNICOMPLETION                                  *fugitive-gitlab-omicomplete*
 
-fugitive-gitlab does not provide any of its own commands.
-See |fugitive| for its commands
+This plugin provides the abilitiy to omnicomplete either gitlab issues or
+gitlab project/group members when inside a git commit message.
 
-ABOUT                                           *fugitive-gitlab-about*
+omnicompletion is currently limited to origin gitlab remotes.
+
+For this functonality to work, you must first set up API keys, see
+|fugitive-gitlab-config|.
+
+Once set up, you can use |i_CTRL-X_CTRL-O| to automatically complete issues
+that start with # or users that start with @
+
+SNIPPETS                                            *fugitive-gitlab-snippets*
+
+This plugin provides interaction with the gitlab snippets api.
+It provides the ability to create new snippets, update existing snippets
+and list existing snippets.
+
+In the snippets list, the ability to delete or copy existing snippets is
+provided.
+
+See |fugitive-gitlab-:Gsnip| and |fugitive-gitlab-:GsnipList| for further
+details
+
+COMMANDS                                            *fugitive-gitlab-commands*
+
+                                                    *fugitive-gitlab-:Gsnip*
+  :Gsnip [options]      Create a new a new snippet with the contents of the
+                        current buffer.
+    -u                  Update the previously created snippet in this buffer
+    -p                  Create a project specific snippet.
+                        Must be issued from within a git repository.
+    -t <title>          Update/create with title <title>
+    -d <descr>          Update/create with description <description>
+    -f <name>           Update/create with filename <name>
+    -v <visibility>     Update/create with visibility of 'public', 'private'
+                        or 'internal'
+    @remote             Specify an alternative remote name.
+                        This can either be a URL key in the API keys
+                        dictionary or a git remote name.
+                        Will default to origin or gitlab.com
+
+  :<range>Gsnip         As above, but creates the snippet with the specificed
+                        range of text.
+
+
+                                                  *fugitive-gitlab-:GsnipList*
+  :GsnipList [options]  Opens a horizontal split window with a list of existing
+                        snippets.
+    @remote             As per :Gsnip, :GsnipList takes an optional remote
+                        name.
+
+MAPPINGS                                             *fugitive-gitlab-mappings*
+
+The snippet list pane has the following mappings.
+
+  <CR>                  Opens and replaces the list window with a new buffer
+                        containing the contents of the snippet.
+                        This new buffer will automatically update the snippet
+                        when saved.
+  b                     Opens the snippet in your browser
+  y                     Copies the contents of the snippet into the specified
+                        register (yy also works)
+  dd                    Prompts the user whether the want to delete the
+                        snippet (D also works)
+
+See |fugitive| for documentation on fugitive commands
+
+ABOUT                                               *fugitive-gitlab-about*
 
 Grab the latest version or report a bug on GitHub:
 
