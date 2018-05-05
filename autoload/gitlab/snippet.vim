@@ -96,11 +96,6 @@ function! gitlab#snippet#write(bang, line1, line2, ...) abort
         let title = 'empty.txt'
     endif
 
-    " let file_name = s:parse_string_arg(joinedargs, 'f', expand('%'))
-    " let descr = s:parse_string_arg(joinedargs, 'd', 'fugitive-gitlab generated snippet')
-    " let file_name = expand('%')
-    " let descr = 'fugitive-gitlab generated snippet'
-
     let data = {
         \'title': title,
         \'file_name': name,
@@ -112,21 +107,30 @@ function! gitlab#snippet#write(bang, line1, line2, ...) abort
             call s:error('Not a git repository, cannot work out project')
             return
         endif
+        " project must have visibility set
+        let data['visibility'] = get(options, 'visibility', get(g:, 'gitlab_default_visibility', 'public'))
         let data['code'] = text
-        let data['visibility'] = 'private'
         let path = '/projects/' . remote.project . '/snippets'
     else
+        " user snippets don't need to set visibility
+        let visibility = get(options, 'visibility', get(g:, 'gitlab_default_visibility'))
+        if !empty(visibility)
+            let data['visibility'] = visibility
+        endif
         let data['content'] = text
         let path = '/snippets'
     endif
 
     echon 'writing snippet ... '
-    call s:set_snippet(remote.root, path, data, 'POST')
+    try
+        call s:set_snippet(remote.root, path, data, 'POST')
+    catch /^gitlab:/
+        call s:error(v:errmsg)
+    endtry
 endfunction
 
 "[{"id":1700538,"title":"test","file_name":"test.md","description":"test project snippet","author":{"id":1672441,"name":"Steven Humphrey","username":"shumphrey","state":"active","avatar_url":"https://secure.gravatar.com/avatar/a5a6c4ee136cf136c6c379116a0caaeb?s=80\u0026d=identicon","web_url":"https://gitlab.com/shumphrey"},"updated_at":"2018-02-23T19:37:07.150Z","created_at":"2018-02-23T19:37:07.150Z","project_id":5360561,"web_url":"https://gitlab.com/shumphrey/fugitive-gitlab.vim/snippets/1700538"}]
 function! gitlab#snippet#list(...) abort
-    " calling buffer
     let g:gitlab_snippetlist_caller = bufnr('')
 
     let bufname = 'gitlab-snippets-list'
@@ -169,6 +173,14 @@ function! gitlab#snippet#list(...) abort
         else
             let snippet['project_id'] = v:null
         endif
+
+        try
+            " Don't store info we don't use
+            unlet snippet['author']
+            unlet snippet['created_at']
+            unlet snippet['updated_at']
+        endtry
+
         call add(output, s:snippet_list_output_line(snippet))
         let g:gitlab_snippets[snippet.id] = snippet
     endfor
@@ -280,6 +292,8 @@ function! s:listaction_yank() abort
     let lines = readfile(tempsnippet)
 
     call setreg(v:register, lines)
+    echon 'Yanked snippet'
+    bwipe
 endfunction
 
 function! s:update_gitlab_snippet() abort
@@ -374,6 +388,8 @@ function! s:snippet_list_output_line(snippet) abort
     else
         let output .= ' '
     endif
+    " would like to display visibility, but API (10.7) does not return it
+    " would also like to display project name
     let output .= a:snippet.title . ' - ' . a:snippet.description
     return output
 endfunction

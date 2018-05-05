@@ -59,7 +59,7 @@ let g:gitlab_snippets = {}
 " autocompletion for :Gsnip command
 " completes the previous snippet id and the remote name
 function! s:write_snippet_comp(lead, cmd, pos) abort
-    let list = ['-p', '-u']
+    let list = [ '-d', '-p', '-t', '-u', '-v' ]
 
     let remotes = keys(g:gitlab_api_keys)
     try
@@ -84,6 +84,12 @@ function! s:list_snippet_comp(lead, cmd, pos) abort
     endtry
 
     call extend(list, map(remotes, '"@" . v:val'))
+
+    let visibilities = ['public', 'internal', 'private']
+
+    if match(a:cmd, '-v\s\+\w*$') > -1
+        return filter(visibilities, 'v:val =~# "^' . a:lead .'"')
+    endif
 
     return filter(list, 'v:val =~# "^' . a:lead . '"')
 endfunction

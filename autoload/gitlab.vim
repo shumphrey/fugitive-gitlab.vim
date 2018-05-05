@@ -269,6 +269,10 @@ function! gitlab#request(domain, path, ...) abort
         call s:throw(json_encode(get(jsonres, 'message')))
     endif
 
+    if type(jsonres) == type({}) && has_key(jsonres, 'error')
+        call s:throw(jsonres.error)
+    endif
+
     return jsonres
 endfunction
 
