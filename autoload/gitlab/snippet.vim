@@ -172,14 +172,25 @@ function! gitlab#snippet#write(bang, line1, line2, ...) abort
     try
         let b:gitlab_snippet = s:set_snippet(remote.root, path, data, method)
         let b:gitlab_snippet.remote = remote
+        " bang is supplied, do we want to open the snippet in browser by default
+        " I suspect not
+        " call s:open_snippet_in_browser(b:gitlab_snippet)
     catch /^gitlab:/
         call s:error(v:errmsg)
         return
     endtry
+
 endfunction
 
 "[{"id":1700538,"title":"test","file_name":"test.md","description":"test project snippet","author":{"id":1672441,"name":"Steven Humphrey","username":"shumphrey","state":"active","avatar_url":"https://secure.gravatar.com/avatar/a5a6c4ee136cf136c6c379116a0caaeb?s=80\u0026d=identicon","web_url":"https://gitlab.com/shumphrey"},"updated_at":"2018-02-23T19:37:07.150Z","created_at":"2018-02-23T19:37:07.150Z","project_id":5360561,"web_url":"https://gitlab.com/shumphrey/fugitive-gitlab.vim/snippets/1700538"}]
 function! gitlab#snippet#list(...) abort
+    try
+        let remote = call('s:gitlab_remote', a:000)
+    catch
+        call s:error(v:errmsg)
+        return
+    endtry
+
     let g:gitlab_snippetlist_caller = bufnr('')
 
     let bufname = 'gitlab-snippets-list'
@@ -196,16 +207,9 @@ function! gitlab#snippet#list(...) abort
     setlocal modifiable
     silent %d _
 
-    try
-        let remote = call('s:gitlab_remote', a:000)
-    catch
-        call s:error(v:errmsg)
-        return
-    endtry
-
     redraw | echon 'Listing snippets... '
 
-    let snippets = gitlab#request(remote.root, '/snippets')
+    let snippets = gitlab#request(remote.root, '/snippets?per_page=100')
 
     let output = []
     let g:gitlab_snippets = {}
@@ -262,7 +266,7 @@ augroup gitlab_snippets
     " autocmd FileType gitlabsnippetlist setlocal nomodeline
     autocmd Syntax gitlabsnippetlist call s:gitlab_snippet_list_syntax()
 
-    autocmd BufWritePost gitlabsnippet.* call s:update_gitlab_snippet()
+    autocmd BufWritePost gitlabsnippet.* call s:autocmd_update_gitlab_snippet()
 augroup END
 
 function! s:listaction_load() abort
@@ -309,23 +313,11 @@ function! s:listaction_browse() abort
     let line = getline('.')
     let id   = matchstr(line, '\v^\d+')
     let snippet = g:gitlab_snippets[id]
-
     let url = snippet.web_url
     echom url
 
     try
-        if exists(':Browse') == 2
-            Browse url
-        else
-            if !exists('g:loaded_netrw')
-                runtime! autoload/netrw.vim
-            endif
-            if exists('*netrw#BrowseX')
-                call netrw#BrowseX(url, 0)
-            else
-                call netrw#NetrwBrowseX(url, 0)
-            endif
-        endif
+        call s:open_snippet_in_browser(snippet)
     catch
         call s:error(v:errmsg)
         return
@@ -345,7 +337,24 @@ function! s:listaction_yank() abort
     bwipe
 endfunction
 
-function! s:update_gitlab_snippet() abort
+function! s:open_snippet_in_browser(snippet) abort
+    let url = a:snippet.web_url
+
+    if exists(':Browse') == 2
+        Browse url
+    else
+        if !exists('g:loaded_netrw')
+            runtime! autoload/netrw.vim
+        endif
+        if exists('*netrw#BrowseX')
+            call netrw#BrowseX(url, 0)
+        else
+            call netrw#NetrwBrowseX(url, 0)
+        endif
+    endif
+endfunction
+
+function! s:autocmd_update_gitlab_snippet() abort
     if !exists('b:gitlab_snippet')
         call s:throw('Not editing a gitlab snippet')
     endif
