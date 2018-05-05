@@ -74,12 +74,12 @@ function! s:gitlab_remote(...) abort
 endfunction
 
 function! gitlab#snippet#write(bang, line1, line2, ...) abort
-    let options = s:parse_args(a:000)
-    if type(options) != type({})
-        return
-    endif
-
     try
+        let options = s:parse_args(a:000)
+        if type(options) != type({})
+            return
+        endif
+
         let remote = s:gitlab_remote(get(options, 'remote', ''))
     catch
         call s:error(v:errmsg)
@@ -109,7 +109,8 @@ function! gitlab#snippet#write(bang, line1, line2, ...) abort
 
     if type == 'project'
         if !has_key(remote, 'project')
-            call s:throw('Not a git repository, cannot work out project')
+            call s:error('Not a git repository, cannot work out project')
+            return
         endif
         let data['code'] = text
         let data['visibility'] = 'private'
@@ -142,9 +143,15 @@ function! gitlab#snippet#list(...) abort
     setlocal modifiable
     silent %d _
 
+    try
+        let remote = call('s:gitlab_remote', a:000)
+    catch
+        call s:error(v:errmsg)
+        return
+    endtry
+
     redraw | echon 'Listing snippets... '
 
-    let remote = call('s:gitlab_remote', a:000)
     let snippets = gitlab#request(remote.root, '/snippets')
 
     let output = []
