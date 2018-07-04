@@ -292,10 +292,6 @@ function! gitlab#omnifunc(findstart, base) abort
         return col('.')-1-strlen(existing)
     endif
     try
-        if empty(a:base)
-            return -3
-        endif
-
         if a:base =~# '^@'
             if !exists('g:gitlab_members_type')
                 let g:gitlab_members_type = 'project'
