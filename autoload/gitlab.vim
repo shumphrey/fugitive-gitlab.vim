@@ -176,10 +176,16 @@ function! s:gitlab_project_from_repo(...) abort
         let remote = 'origin'
     endif
 
-    if fugitive#git_version() =~# '^[01]\.\|^2\.[0-6]\.'
+    " Account for CamelCase change in fugitive
+    " https://github.com/tpope/vim-fugitive/commit/5c2095be39ed181af93a4b7bddd923a2a0e84932
+    if exists('fugitive#GitVersion') && fugitive#GitVersion() =~# '^[01]\.\|^2\.[0-6]\.'
         let raw = repo.git_chomp('config', 'remote.'.remote.'.url')
     else
-        let raw = repo.git_chomp('remote', 'get-url', remote)
+        if exists('fugitive#git_version') && fugitive#git_version() =~# '^[01]\.\|^2\.[0-6]\.'
+            let raw = repo.git_chomp('config', 'remote.'.remote.'.url')
+        else
+            let raw = repo.git_chomp('remote', 'get-url', remote)
+        endif
     endif
 
     return gitlab#api_paths_for_remote(raw)
