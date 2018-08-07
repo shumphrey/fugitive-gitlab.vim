@@ -156,9 +156,11 @@ function! gitlab#get_api_key_from_root(root) abort
                 return item[1]
             endif
         endfor
+    else
+        call s:throw('Missing g:gitlab_api_keys')
     endif
 
-    call s:throw('Missing g:gitlab_api_keys')
+    call s:throw('Could not find api key for ' . a:root)
 endfunction
 
 function! gitlab#api_paths_for_remote(remote) abort

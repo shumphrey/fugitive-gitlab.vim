@@ -23,7 +23,7 @@ function! s:gitlab_remote(...) abort
             if exists('g:gitlab_remote')
                 let default_remote = g:gitlab_remote
             endif
-            let url = fugitive#buffer().repo().config('remote.'.default_remote.'.url')
+            let url = fugitive#repo().config('remote.'.default_remote.'.url')
             return gitlab#api_paths_for_remote(url)
         catch
             if exists('g:gitlab_api_url')
@@ -48,7 +48,8 @@ function! s:gitlab_remote(...) abort
         " If it is a git remote, we need to knock off the paths
         " First try and match found url to a fugitive_gitlab_domains
             try
-                let url = fugitive#buffer().repo().git_chomp('config', 'remote.'.remotename.'.url')
+                let repo = fugitive#repo()
+                let url = repo.git_chomp('config', 'remote.'.remotename.'.url')
             catch
                 call s:throw('Not a valid url or git remote')
             endtry
@@ -501,4 +502,10 @@ function! s:error(string)
     let v:errmsg = a:string
     echohl ErrorMsg | echomsg a:string | echohl None
 endfunction
+
+" public APIs, useful for testing
+function! gitlab#snippet#GitlabRemoteURL(...) abort
+    return call('s:gitlab_remote', a:000)
+endfunction
+
 " vim: set ts=4 sw=4 et foldmethod=indent foldnestmax=1 :

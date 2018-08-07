@@ -1,0 +1,77 @@
+Before:
+    Save g:fugitive_gitlab_domains
+    Save g:gitlab_api_keys
+    Save g:gitlab_api_url
+    Save g:gitlab_remote
+
+    let g:fugitive_gitlab_domains = ['https://my.gitlab.com']
+    let g:gitlab_api_keys = {
+        \'my.gitlab.com': 'test',
+        \'my2.gitlab.com': 'test2'
+    \}
+
+    unlet! g:loaded_fugitive_gitlab
+    unlet! g:autoloaded_fugitive_gitlab
+    unlet! g:gitlab_api_url
+    unlet! g:gitlab_remote
+
+    runtime plugin/gitlab.vim
+    runtime autoload/gitlab/snippets.vim
+    runtime autoload/fugitive.vim
+
+After:
+    Restore g:fugitive_gitlab_domains
+    Restore g:gitlab_api_keys
+    Restore g:gitlab_api_url
+    Restore g:gitlab_remote
+
+    " remove all opened snippet buffers
+    silent! bwipe! gitlab-snippets-list
+
+Execute (Initialize test environment):
+    let g:temp_gitlab_repo = tempname() . '/mock_git_repo/'
+    call system('mkdir -p ' . g:temp_gitlab_repo)
+    exe 'chdir ' . g:temp_gitlab_repo
+    call system('git init')
+    call system('git remote add origin git@my.gitlab.com:dummy/project.git')
+    call system('git remote add upstream git@my2.gitlab.com:dummy/project2.git')
+    " tell fugitive where the repo is
+    " vader's pseudo filename doesn't allow fugitive to work out git_dir
+    let b:git_dir = g:temp_gitlab_repo . '/.git'
+
+Execute (gitlab_remote - invalid):
+    AssertThrows gitlab#snippet#GitlabRemoteURL('not a real remote')
+
+Execute (gitlab_remote - default):
+    let result = gitlab#snippet#GitlabRemoteURL()
+    AssertEqual result, {'root': 'https://my.gitlab.com', 'project': 'dummy%2Fproject'}
+
+Execute (GitlabRemoteURL - @origin):
+    let result = gitlab#snippet#GitlabRemoteURL('@origin')
+    AssertEqual result, {'root': 'https://my.gitlab.com', 'project': 'dummy%2Fproject'}
+
+Execute (GitlabRemoteURL - @upstream):
+    let result = gitlab#snippet#GitlabRemoteURL('@upstream')
+    AssertEqual result, {'root': 'https://my2.gitlab.com', 'project': 'dummy%2Fproject2'}
+
+Execute (GitlabRemoteURL - g:gitlab_remote):
+    let g:gitlab_remote = 'upstream'
+    let result = gitlab#snippet#GitlabRemoteURL()
+    AssertEqual result, {'root': 'https://my2.gitlab.com', 'project': 'dummy%2Fproject2'}
+
+Execute (gitlab_remote - my.gitlab.com):
+    let result = gitlab#snippet#GitlabRemoteURL('my.gitlab.com')
+    AssertEqual result, {'root': 'https://my.gitlab.com', 'project': 'dummy%2Fproject'}
+
+Execute (gitlab_remote - my2.gitlab.com):
+    let result = gitlab#snippet#GitlabRemoteURL('my2.gitlab.com')
+    AssertEqual result, {'root': 'https://my2.gitlab.com', 'project': 'dummy%2Fproject2'}
+
+" Execute (List snippets):
+"     Log 'gitlab_api_keys '
+"     Log g:gitlab_api_keys
+"     let res = system('git remote -v')
+"     echo res
+"     echo system('pwd')
+"     " chdir
+"     GsnipList @origin
