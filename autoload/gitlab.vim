@@ -75,6 +75,9 @@ function! gitlab#homepage_for_remote(remote) abort
     " ssh://git@domain:ssh_port/path.git
     let base = matchstr(a:remote, '^\%(https\=://\|git://\|git\%(lab\)\?@\|ssh://git\%(lab\)\?@\)\%(.\{-\}@\)\=\zs\('.domain_pattern.'\)[/:].\{-\}\ze\%(\.git\)\=$')
 
+    " Remove port
+    let base = substitute(base, ':\d\{1,4}\/', '/', '')
+
     let base = tr(base, ':', '/')
     let domain = substitute(base, '\v/.*', '', '')
 
