@@ -71,7 +71,9 @@ function! gitlab#homepage_for_remote(remote) abort
     " https://domain/path
     " https://user@domain/path
     " ssh://git@domain/path.git
-    let base = matchstr(a:remote, '^\%(https\=://\|git://\|git@\|ssh://git@\)\%(.\{-\}@\)\=\zs\('.domain_pattern.'\)[/:].\{-\}\ze\%(\.git\)\=$')
+    " ssh://gitlab@domain/path.git
+    " ssh://git@domain:ssh_port/path.git
+    let base = matchstr(a:remote, '^\%(https\=://\|git://\|git\%(lab\)\?@\|ssh://git\%(lab\)\?@\)\%(.\{-\}@\)\=\zs\('.domain_pattern.'\)[/:].\{-\}\ze\%(\.git\)\=$')
 
     let base = tr(base, ':', '/')
     let domain = substitute(base, '\v/.*', '', '')
@@ -336,7 +338,7 @@ function! gitlab#omnifunc(findstart, base) abort
     catch /^\%(fugitive\|gitlab\):/
         echoerr v:errmsg
     endtry
-        
+
 endfunction
 
 function! s:throw(string) abort
