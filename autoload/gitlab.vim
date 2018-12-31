@@ -67,13 +67,17 @@ function! gitlab#homepage_for_remote(remote) abort
         let domain_pattern .= '\|' . escape(pattern, '.')
     endfor
 
+    if !exists('g:fugitive_gitlab_ssh_user')
+        let g:fugitive_gitlab_ssh_user = 'git'
+    endif
+
     " git://domain:path
     " https://domain/path
     " https://user@domain/path
     " ssh://git@domain/path.git
     " ssh://gitlab@domain/path.git
     " ssh://git@domain:ssh_port/path.git
-    let base = matchstr(a:remote, '^\%(https\=://\|git://\|git\%(lab\)\?@\|ssh://git\%(lab\)\?@\)\%(.\{-\}@\)\=\zs\('.domain_pattern.'\)[/:].\{-\}\ze\%(\.git\)\=$')
+    let base = matchstr(a:remote, '^\%(https\=://\|git://\|' . g:fugitive_gitlab_ssh_user . '@\|ssh://' . g:fugitive_gitlab_ssh_user . '@\)\%(.\{-\}@\)\=\zs\('.domain_pattern.'\)[/:].\{-\}\ze\%(\.git\)\=$')
 
     " Remove port
     let base = substitute(base, ':\d\{1,4}\/', '/', '')
