@@ -33,7 +33,7 @@ function! s:config() abort
     " omnicomplete currently only works if the gitlab remote is origin
     " rhubarb.vim (github) may load first if one of the remotes is a github
     " remote
-    return fugitive#buffer().repo().config('remote.origin.url')
+    return fugitive#repo().config('remote.origin.url')
 endfunction
 
 augroup gitlab
