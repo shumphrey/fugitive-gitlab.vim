@@ -80,7 +80,7 @@ function! gitlab#homepage_for_remote(remote) abort
     let base = matchstr(a:remote, '^\%(https\=://\|git://\|' . g:fugitive_gitlab_ssh_user . '@\|ssh://' . g:fugitive_gitlab_ssh_user . '@\)\%(.\{-\}@\)\=\zs\('.domain_pattern.'\)[/:].\{-\}\ze\%(\.git\)\=$')
 
     " Remove port
-    let base = substitute(base, ':\d\{1,4}\/', '/', '')
+    let base = substitute(base, ':\d\{1,5}\/', '/', '')
 
     let base = tr(base, ':', '/')
     let domain = substitute(base, '\v/.*', '', '')
@@ -215,7 +215,7 @@ function! gitlab#request(domain, path, ...) abort
     if a:0
         let json = gitlab#json_generate(a:0)
     endif
-    
+
     if exists('*Post')
         if exists('json')
             let raw = Post(url, headers, json)
