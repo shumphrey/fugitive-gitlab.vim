@@ -67,11 +67,20 @@ function! gitlab#homepage_for_remote(remote) abort
         let domain_pattern .= '\|' . escape(pattern, '.')
     endfor
 
+    if !exists('g:fugitive_gitlab_ssh_user')
+        let g:fugitive_gitlab_ssh_user = 'git'
+    endif
+
     " git://domain:path
     " https://domain/path
     " https://user@domain/path
     " ssh://git@domain/path.git
-    let base = matchstr(a:remote, '^\%(https\=://\|git://\|git@\|ssh://git@\)\%(.\{-\}@\)\=\zs\('.domain_pattern.'\)[/:].\{-\}\ze\%(\.git\)\=$')
+    " ssh://gitlab@domain/path.git
+    " ssh://git@domain:ssh_port/path.git
+    let base = matchstr(a:remote, '^\%(https\=://\|git://\|' . g:fugitive_gitlab_ssh_user . '@\|ssh://' . g:fugitive_gitlab_ssh_user . '@\)\%(.\{-\}@\)\=\zs\('.domain_pattern.'\)[/:].\{-\}\ze\%(\.git\)\=$')
+
+    " Remove port
+    let base = substitute(base, ':\d\{1,5}\/', '/', '')
 
     let base = tr(base, ':', '/')
     let domain = substitute(base, '\v/.*', '', '')
@@ -206,7 +215,7 @@ function! gitlab#request(domain, path, ...) abort
     if a:0
         let json = gitlab#json_generate(a:0)
     endif
-    
+
     if exists('*Post')
         if exists('json')
             let raw = Post(url, headers, json)
@@ -336,7 +345,7 @@ function! gitlab#omnifunc(findstart, base) abort
     catch /^\%(fugitive\|gitlab\):/
         echoerr v:errmsg
     endtry
-        
+
 endfunction
 
 function! s:throw(string) abort
