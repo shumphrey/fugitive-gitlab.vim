@@ -29,20 +29,13 @@ if index(g:fugitive_browse_handlers, function('gitlab#fugitive_handler')) < 0
     call insert(g:fugitive_browse_handlers, function('gitlab#fugitive_handler'))
 endif
 
-function! s:config() abort
-    " omnicomplete currently only works if the gitlab remote is origin
-    " rhubarb.vim (github) may load first if one of the remotes is a github
-    " remote
-    return fugitive#repo().config('remote.origin.url')
-endfunction
-
 augroup gitlab
   autocmd!
   autocmd User Fugitive
         \ if expand('%:p') =~# '\.git[\/].*MSG$' &&
         \   exists('+omnifunc') &&
         \   &omnifunc =~# '^\%(syntaxcomplete#Complete\)\=$' &&
-        \   !empty(gitlab#homepage_for_remote(s:config())) |
+        \   !empty(gitlab#homepage_for_remote(FugitiveRemoteUrl())) |
         \   setlocal omnifunc=gitlab#omnifunc |
         \ endif
   autocmd BufEnter *

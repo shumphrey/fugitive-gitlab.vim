@@ -176,8 +176,6 @@ function! gitlab#api_paths_for_remote(remote) abort
 endfunction
 
 function! s:gitlab_project_from_repo(...) abort
-    let repo = fugitive#repo()
-
     let validremote = '\.\|\.\=/.*\|[[:alnum:]_-]\+\%(://.\{-\}\)\='
     if len(a:000) > 0
         let remote = matchstr(join(a:000, ' '),'@\zs\%('.validremote.'\)$')
@@ -185,17 +183,7 @@ function! s:gitlab_project_from_repo(...) abort
         let remote = 'origin'
     endif
 
-    " Account for CamelCase change in fugitive
-    " https://github.com/tpope/vim-fugitive/commit/5c2095be39ed181af93a4b7bddd923a2a0e84932
-    if exists('fugitive#GitVersion') && fugitive#GitVersion() =~# '^[01]\.\|^2\.[0-6]\.'
-        let raw = repo.git_chomp('config', 'remote.'.remote.'.url')
-    else
-        if exists('fugitive#git_version') && fugitive#git_version() =~# '^[01]\.\|^2\.[0-6]\.'
-            let raw = repo.git_chomp('config', 'remote.'.remote.'.url')
-        else
-            let raw = repo.git_chomp('remote', 'get-url', remote)
-        endif
-    endif
+    let raw = FugitiveRemoteUrl(remote)
 
     return gitlab#api_paths_for_remote(raw)
 endfunction
@@ -321,7 +309,7 @@ function! gitlab#omnifunc(findstart, base) abort
                 let prefix = '#'
             else
                 let repo = fugitive#repo()
-                let homepage = gitlab#homepage_for_remote(repo.config('remote.'.remote.'.url'))
+                let homepage = gitlab#homepage_for_remote(FugitiveRemoteUrl(remote))
                 let prefix = homepage . '/issues/'
             endif
             " this differ to rhubarb slightly,
