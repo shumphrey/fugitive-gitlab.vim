@@ -67,11 +67,20 @@ function! gitlab#homepage_for_remote(remote) abort
         let domain_pattern .= '\|' . escape(pattern, '.')
     endfor
 
+    if !exists('g:fugitive_gitlab_ssh_user')
+        let g:fugitive_gitlab_ssh_user = 'git'
+    endif
+
     " git://domain:path
     " https://domain/path
     " https://user@domain/path
     " ssh://git@domain/path.git
-    let base = matchstr(a:remote, '^\%(https\=://\|git://\|git@\|ssh://git@\)\%(.\{-\}@\)\=\zs\('.domain_pattern.'\)[/:].\{-\}\ze\%(\.git\)\=$')
+    " ssh://gitlab@domain/path.git
+    " ssh://git@domain:ssh_port/path.git
+    let base = matchstr(a:remote, '^\%(https\=://\|git://\|' . g:fugitive_gitlab_ssh_user . '@\|ssh://' . g:fugitive_gitlab_ssh_user . '@\)\%(.\{-\}@\)\=\zs\('.domain_pattern.'\)[/:].\{-\}\ze\%(\.git\)\=$')
+
+    " Remove port
+    let base = substitute(base, ':\d\{1,5}\/', '/', '')
 
     let base = tr(base, ':', '/')
     let domain = substitute(base, '\v/.*', '', '')
@@ -167,8 +176,6 @@ function! gitlab#api_paths_for_remote(remote) abort
 endfunction
 
 function! s:gitlab_project_from_repo(...) abort
-    let repo = fugitive#repo()
-
     let validremote = '\.\|\.\=/.*\|[[:alnum:]_-]\+\%(://.\{-\}\)\='
     if len(a:000) > 0
         let remote = matchstr(join(a:000, ' '),'@\zs\%('.validremote.'\)$')
@@ -176,17 +183,7 @@ function! s:gitlab_project_from_repo(...) abort
         let remote = 'origin'
     endif
 
-    " Account for CamelCase change in fugitive
-    " https://github.com/tpope/vim-fugitive/commit/5c2095be39ed181af93a4b7bddd923a2a0e84932
-    if exists('fugitive#GitVersion') && fugitive#GitVersion() =~# '^[01]\.\|^2\.[0-6]\.'
-        let raw = repo.git_chomp('config', 'remote.'.remote.'.url')
-    else
-        if exists('fugitive#git_version') && fugitive#git_version() =~# '^[01]\.\|^2\.[0-6]\.'
-            let raw = repo.git_chomp('config', 'remote.'.remote.'.url')
-        else
-            let raw = repo.git_chomp('remote', 'get-url', remote)
-        endif
-    endif
+    let raw = FugitiveRemoteUrl(remote)
 
     return gitlab#api_paths_for_remote(raw)
 endfunction
@@ -206,7 +203,7 @@ function! gitlab#request(domain, path, ...) abort
     if a:0
         let json = gitlab#json_generate(a:0)
     endif
-    
+
     if exists('*Post')
         if exists('json')
             let raw = Post(url, headers, json)
@@ -292,10 +289,6 @@ function! gitlab#omnifunc(findstart, base) abort
         return col('.')-1-strlen(existing)
     endif
     try
-        if empty(a:base)
-            return -3
-        endif
-
         if a:base =~# '^@'
             if !exists('g:gitlab_members_type')
                 let g:gitlab_members_type = 'project'
@@ -316,7 +309,7 @@ function! gitlab#omnifunc(findstart, base) abort
                 let prefix = '#'
             else
                 let repo = fugitive#repo()
-                let homepage = gitlab#homepage_for_remote(repo.config('remote.'.remote.'.url'))
+                let homepage = gitlab#homepage_for_remote(FugitiveRemoteUrl(remote))
                 let prefix = homepage . '/issues/'
             endif
             " this differ to rhubarb slightly,
@@ -340,7 +333,7 @@ function! gitlab#omnifunc(findstart, base) abort
     catch /^\%(fugitive\|gitlab\):/
         echoerr v:errmsg
     endtry
-        
+
 endfunction
 
 function! s:throw(string) abort
