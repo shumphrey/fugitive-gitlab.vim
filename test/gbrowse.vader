@@ -1,11 +1,9 @@
 Before:
     Save g:fugitive_gitlab_domains
     Save g:fugitive_browse_handlers
-    Save g:fugitive_gitlab_ssh_user
 
     unlet! g:fugitive_browse_handlers
     unlet! g:fugitive_gitlab_domains
-    unlet! g:fugitive_gitlab_ssh_user
 
     unlet! g:loaded_fugitive_gitlab
     unlet! g:autoloaded_fugitive_gitlab
@@ -101,7 +99,7 @@ Execute (Gbrowse - https remote with @):
 
 Execute (Gbrowse - Long form ssh remote):
     let opts = {
-      \'remote': 'ssh://git@gitlab.com:shumphrey/fugitive-gitlab.vim.git',
+      \'remote': 'ssh://git@gitlab.com/shumphrey/fugitive-gitlab.vim.git',
       \'commit': 'master',
       \'type': 'blob',
       \'path': 'myfile.vim'
@@ -112,16 +110,11 @@ Execute (Gbrowse - Long form ssh remote):
 
 Execute (Gbrowse - Long form ssh remote with non-standard ssh user):
     let opts = {
-      \'remote': 'ssh://gitlab@gitlab.com:shumphrey/fugitive-gitlab.vim.git',
+      \'remote': 'ssh://gitlab@gitlab.com/shumphrey/fugitive-gitlab.vim.git',
       \'commit': 'master',
       \'type': 'blob',
       \'path': 'myfile.vim'
     \}
-
-    let url = g:fugitive_browse_handlers[0](opts)
-    AssertEqual '', url
-
-    let g:fugitive_gitlab_ssh_user = 'gitlab'
     let url = g:fugitive_browse_handlers[0](opts)
 
     AssertEqual 'https://gitlab.com/shumphrey/fugitive-gitlab.vim/blob/master/myfile.vim', url
@@ -144,11 +137,6 @@ Execute (Gbrowse - Short form ssh remote with non-standard ssh user):
       \'type': 'blob',
       \'path': 'myfile.vim'
     \}
-
-    let url = g:fugitive_browse_handlers[0](opts)
-    AssertEqual '', url
-
-    let g:fugitive_gitlab_ssh_user = 'gitlab'
     let url = g:fugitive_browse_handlers[0](opts)
 
     AssertEqual 'https://gitlab.com/shumphrey/fugitive-gitlab.vim/blob/master/myfile.vim', url
