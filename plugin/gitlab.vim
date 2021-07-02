@@ -33,6 +33,8 @@ augroup gitlab
   autocmd!
   autocmd User Fugitive
         \ if expand('%:p') =~# '\.git[\/].*MSG$' &&
+        \   exists('g:gitlab_api_keys') &&
+        \   !empty(g:gitlab_api_keys) &&
         \   exists('+omnifunc') &&
         \   &omnifunc =~# '^\%(syntaxcomplete#Complete\)\=$' &&
         \   !empty(gitlab#homepage_for_remote(FugitiveRemoteUrl())) |
