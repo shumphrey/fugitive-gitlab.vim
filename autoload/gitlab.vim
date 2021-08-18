@@ -32,7 +32,7 @@ function! gitlab#fugitive_handler(opts, ...)
 
     " If buffer contains directory not file, return a /tree url
     let path = get(a:opts, 'path', '')
-    if get(a:opts, 'type', '') ==# 'tree' || path =~# '/$'
+    if get(a:opts, 'type', '') ==# 'tree' || get(a:opts, 'path', '') =~# '/$'
         let url = substitute(root . '/tree/' . commit . '/' . path,'/$','', '')
     elseif get(a:opts, 'type', '') ==# 'blob' || path =~# '[^/]$'
         let url = root . "/blob/" . commit . '/' . path
