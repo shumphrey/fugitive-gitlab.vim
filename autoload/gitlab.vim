@@ -28,12 +28,7 @@ function! gitlab#fugitive_handler(opts, ...)
         return root
     endif
 
-    " Work out the commit
-    if a:opts.commit =~# '^\d\=$'
-        let commit = a:opts.repo.rev_parse('HEAD')
-    else
-        let commit = a:opts.commit
-    endif
+    let commit = a:opts.commit
 
     " If buffer contains directory not file, return a /tree url
     let path = get(a:opts, 'path', '')
