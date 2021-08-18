@@ -302,7 +302,6 @@ function! gitlab#omnifunc(findstart, base) abort
             if a:base =~# '^#'
                 let prefix = '#'
             else
-                let repo = fugitive#repo()
                 let homepage = gitlab#homepage_for_remote(FugitiveRemoteUrl(remote))
                 let prefix = homepage . '/issues/'
             endif
