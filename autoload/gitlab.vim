@@ -28,16 +28,11 @@ function! gitlab#fugitive_handler(opts, ...)
         return root
     endif
 
-    " Work out the commit
-    if a:opts.commit =~# '^\d\=$'
-        let commit = a:opts.repo.rev_parse('HEAD')
-    else
-        let commit = a:opts.commit
-    endif
+    let commit = a:opts.commit
 
     " If buffer contains directory not file, return a /tree url
     let path = get(a:opts, 'path', '')
-    if get(a:opts, 'type', '') ==# 'tree' || path =~# '/$'
+    if get(a:opts, 'type', '') ==# 'tree' || get(a:opts, 'path', '') =~# '/$'
         let url = substitute(root . '/tree/' . commit . '/' . path,'/$','', '')
     elseif get(a:opts, 'type', '') ==# 'blob' || path =~# '[^/]$'
         let url = root . "/blob/" . commit . '/' . path
@@ -307,7 +302,6 @@ function! gitlab#omnifunc(findstart, base) abort
             if a:base =~# '^#'
                 let prefix = '#'
             else
-                let repo = fugitive#repo()
                 let homepage = gitlab#homepage_for_remote(FugitiveRemoteUrl(remote))
                 let prefix = homepage . '/issues/'
             endif

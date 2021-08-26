@@ -29,15 +29,22 @@ if index(g:fugitive_browse_handlers, function('gitlab#fugitive_handler')) < 0
     call insert(g:fugitive_browse_handlers, function('gitlab#fugitive_handler'))
 endif
 
+function! s:SetUpMessage(filename) abort
+  if &omnifunc !~# '^\%(syntaxcomplete#Complete\)\=$' ||
+        \ a:filename !~# '\.git[\/].*MSG$'
+    return
+  endif
+  let dir = exists('*FugitiveConfigGetRegexp') ? FugitiveGitDir() : FugitiveExtractGitDir(a:filename)
+  if !empty(dir) && !empty(gitlab#homepage_for_remote(FugitiveRemoteUrl('', dir)))
+    setlocal omnifunc=gitlab#omnifunc
+  endif
+endfunction
+
 augroup gitlab
   autocmd!
-  autocmd User Fugitive
-        \ if expand('%:p') =~# '\.git[\/].*MSG$' &&
-        \   exists('+omnifunc') &&
-        \   &omnifunc =~# '^\%(syntaxcomplete#Complete\)\=$' &&
-        \   !empty(gitlab#homepage_for_remote(FugitiveRemoteUrl())) |
-        \   setlocal omnifunc=gitlab#omnifunc |
-        \ endif
+  if exists('+omnifunc')
+    autocmd FileType gitcommit call s:SetUpMessage(expand('<afile>:p'))
+  endif
   autocmd BufEnter *
         \ if expand('%') ==# '' && &previewwindow && pumvisible() && getbufvar('#', '&omnifunc') ==# 'gitlab#omnifunc' |
         \    setlocal nolist linebreak filetype=markdown |
