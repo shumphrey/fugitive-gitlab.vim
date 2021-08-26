@@ -5,10 +5,10 @@ License: Same terms as Vim itself (see |license|)
 
 INTRODUCTION                                    *fugitive-gitlab*
 
-This plugin to fugitive allows the |fugitive-:Gbrowse| command to
+This plugin to fugitive allows the |:GBrowse| command to
 work with gitlab.com or your private gitlab instance.
 
-See |fugitive| for documentation on |fugitive-:Gbrowse| documentation.
+See |fugitive| for documentation on |:GBrowse| documentation.
 
 Additionally use |i_CTRL-X_CTRL-O| to omni-complete GitLab issues when
 editing a commit message. This functionality is subject to change.
@@ -16,7 +16,7 @@ editing a commit message. This functionality is subject to change.
 
 CONFIGURATION                                   *fugitive-gitlab-config*
 
-To use |fugitive-:Gbrowse| with gitlab.com, no configuration is required.
+To use |:GBrowse| with gitlab.com, no configuration is required.
 
 To use it with a private gitlab.com, add the following to your
 .vimrc
@@ -24,7 +24,7 @@ To use it with a private gitlab.com, add the following to your
   let g:fugitive_gitlab_domains = ['https://gitlab.mydomain.com']
 
 For |i_CTRL-X_CTRL-O| commit message omnicompletion of GitLab issues
-and project/group members, you will need to create a GitLab access token 
+and project/group members, you will need to create a GitLab access token
 https://gitlab.com/profile/personal_access_tokens
 with api permissions.
 

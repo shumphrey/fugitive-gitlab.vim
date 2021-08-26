@@ -2,7 +2,7 @@
 " Maintainer:   Steven Humphrey <https://github.com/shumphrey>
 " Version:      1.1.1
 
-" Plugs in to fugitive.vim and provides a gitlab hook for :Gbrowse
+" Plugs in to fugitive.vim and provides a gitlab hook for :GBrowse
 " Relies on fugitive.vim by tpope <http://tpo.pe>
 " See fugitive.vim for more details
 " Requires fugitive.vim 2.1 or greater

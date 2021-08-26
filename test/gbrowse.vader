@@ -14,7 +14,7 @@ After:
     Restore g:fugitive_gitlab_domains
     Restore g:fugitive_browse_handlers
 
-Execute (Gbrowse - blob):
+Execute (GBrowse - blob):
     let opts = {
       \'remote': 'git@gitlab.com:shumphrey/fugitive-gitlab.vim.git',
       \'commit': 'master',
@@ -25,7 +25,7 @@ Execute (Gbrowse - blob):
 
     AssertEqual 'https://gitlab.com/shumphrey/fugitive-gitlab.vim/blob/master/myfile.vim', url
 
-Execute (Gbrowse - blob with range):
+Execute (GBrowse - blob with range):
     let opts = {
       \'remote': 'git@gitlab.com:shumphrey/fugitive-gitlab.vim.git',
       \'commit': 'a935a734765575b33da6c50fe8d0175e70e0e542',
@@ -38,7 +38,7 @@ Execute (Gbrowse - blob with range):
 
     AssertEqual 'https://gitlab.com/shumphrey/fugitive-gitlab.vim/blob/a935a734765575b33da6c50fe8d0175e70e0e542/myfile.vim#L1-3', url
 
-Execute (Gbrowse - directory tree):
+Execute (GBrowse - directory tree):
     let opts = {
       \'remote': 'git@gitlab.com:shumphrey/fugitive-gitlab.vim.git',
       \'commit': 'master',
@@ -48,7 +48,7 @@ Execute (Gbrowse - directory tree):
     let url = g:fugitive_browse_handlers[0](opts)
     AssertEqual 'https://gitlab.com/shumphrey/fugitive-gitlab.vim/tree/master/path1/path2', url
 
-Execute (Gbrowse - commit type):
+Execute (GBrowse - commit type):
     let opts = {
       \'remote': 'git@gitlab.com:shumphrey/fugitive-gitlab.vim.git',
       \'commit': 'a935a734765575b33da6c50fe8d0175e70e0e542',
@@ -57,7 +57,7 @@ Execute (Gbrowse - commit type):
     let url = g:fugitive_browse_handlers[0](opts)
     AssertEqual 'https://gitlab.com/shumphrey/fugitive-gitlab.vim/commit/a935a734765575b33da6c50fe8d0175e70e0e542', url
 
-Execute (Gbrowse - private ssh remote):
+Execute (GBrowse - private ssh remote):
     let opts = {
       \'remote': 'git@my.gitlab.com:shumphrey/fugitive-gitlab.vim.git',
       \'commit': 'master',
@@ -75,7 +75,7 @@ Execute (Gbrowse - private ssh remote):
 
     unlet g:fugitive_gitlab_domains
 
-Execute (Gbrowse - https remote):
+Execute (GBrowse - https remote):
     let opts = {
       \'remote': 'https://gitlab.com/shumphrey/fugitive-gitlab.vim.git',
       \'commit': 'master',
@@ -86,7 +86,7 @@ Execute (Gbrowse - https remote):
 
     AssertEqual 'https://gitlab.com/shumphrey/fugitive-gitlab.vim/blob/master/myfile.vim', url
 
-Execute (Gbrowse - https remote with @):
+Execute (GBrowse - https remote with @):
     let opts = {
       \'remote': 'https://shumphrey@gitlab.com/shumphrey/fugitive-gitlab.vim.git',
       \'commit': 'master',
@@ -97,7 +97,7 @@ Execute (Gbrowse - https remote with @):
 
     AssertEqual 'https://gitlab.com/shumphrey/fugitive-gitlab.vim/blob/master/myfile.vim', url
 
-Execute (Gbrowse - Long form ssh remote):
+Execute (GBrowse - Long form ssh remote):
     let opts = {
       \'remote': 'ssh://git@gitlab.com/shumphrey/fugitive-gitlab.vim.git',
       \'commit': 'master',
@@ -108,7 +108,7 @@ Execute (Gbrowse - Long form ssh remote):
 
     AssertEqual 'https://gitlab.com/shumphrey/fugitive-gitlab.vim/blob/master/myfile.vim', url
 
-Execute (Gbrowse - Long form ssh remote with non-standard ssh user):
+Execute (GBrowse - Long form ssh remote with non-standard ssh user):
     let opts = {
       \'remote': 'ssh://gitlab@gitlab.com/shumphrey/fugitive-gitlab.vim.git',
       \'commit': 'master',
@@ -119,7 +119,7 @@ Execute (Gbrowse - Long form ssh remote with non-standard ssh user):
 
     AssertEqual 'https://gitlab.com/shumphrey/fugitive-gitlab.vim/blob/master/myfile.vim', url
 
-Execute (Gbrowse - Long form ssh remote with non-standard port):
+Execute (GBrowse - Long form ssh remote with non-standard port):
     let opts = {
       \'remote': 'ssh://git@gitlab.com:222/shumphrey/fugitive-gitlab.vim.git',
       \'commit': 'master',
@@ -130,7 +130,7 @@ Execute (Gbrowse - Long form ssh remote with non-standard port):
 
     AssertEqual 'https://gitlab.com/shumphrey/fugitive-gitlab.vim/blob/master/myfile.vim', url
 
-Execute (Gbrowse - Short form ssh remote with non-standard ssh user):
+Execute (GBrowse - Short form ssh remote with non-standard ssh user):
     let opts = {
       \'remote': 'gitlab@gitlab.com:shumphrey/fugitive-gitlab.vim.git',
       \'commit': 'master',
@@ -141,7 +141,7 @@ Execute (Gbrowse - Short form ssh remote with non-standard ssh user):
 
     AssertEqual 'https://gitlab.com/shumphrey/fugitive-gitlab.vim/blob/master/myfile.vim', url
 
-Execute (Gbrowse - Short form ssh remote with non-standard port):
+Execute (GBrowse - Short form ssh remote with non-standard port):
     let opts = {
       \'remote': 'git@gitlab.com:12345/shumphrey/fugitive-gitlab.vim.git',
       \'commit': 'master',
@@ -152,7 +152,7 @@ Execute (Gbrowse - Short form ssh remote with non-standard port):
 
     AssertEqual 'https://gitlab.com/shumphrey/fugitive-gitlab.vim/blob/master/myfile.vim', url
 
-Execute (Gbrowse - Does not match non-gitlab remote):
+Execute (GBrowse - Does not match non-gitlab remote):
     let opts = {
       \'commit': 'master',
       \'type': 'blob',

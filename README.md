@@ -7,7 +7,7 @@
 This plugin allows you to use it with https://gitlab.com or your own
 private gitlab instance.
 
-* Enables `:Gbrowse` from fugitive.vim to open GitLab URLs
+* Enables `:GBrowse` from fugitive.vim to open GitLab URLs
 
 * In commit messages, GitLab issues can be omni-completed
   (`<C-X><C-O>`, see `:help compl-omni`).
@@ -21,10 +21,10 @@ To use private gitlab repositories add the following to your .vimrc
 
     let g:fugitive_gitlab_domains = ['https://my.gitlab.com']
 
-fugitive command `:Gbrowse` will now work with gitlab URLs.
+fugitive command `:GBrowse` will now work with gitlab URLs.
 
 [Curl](http://curl.haxx.se/) is required for features
-that use the GitLab API (i.e., `:Gbrowse` doesn't need it).
+that use the GitLab API (i.e., `:GBrowse` doesn't need it).
 [Generate a personal access token](https://gitlab.com/profile/personal_access_tokens)
 with api permissions and add it to your vimrc
 
