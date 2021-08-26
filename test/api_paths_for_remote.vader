@@ -19,3 +19,10 @@ Execute (gitlab#api_paths_for_remote):
 
     let res = gitlab#api_paths_for_remote('ssh://git@my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
     AssertEqual res, expected
+
+Execute (gitlab#api_paths_for_remote - with dict config):
+    let g:fugitive_gitlab_domains = { 'my.gitlab.com': 'https://my.gitlab.com' }
+
+    let expected = {'root': 'https://my.gitlab.com/api/v4', 'project': 'shumphrey%2Ffugitive-gitlab.vim'}
+    let res = gitlab#api_paths_for_remote('git@my.gitlab.com:shumphrey/fugitive-gitlab.vim.git')
+    AssertEqual res, expected

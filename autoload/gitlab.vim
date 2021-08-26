@@ -48,43 +48,62 @@ function! gitlab#fugitive_handler(opts, ...)
     return url
 endfunction
 
-function! gitlab#homepage_for_remote(remote) abort
-    let domains = exists('g:fugitive_gitlab_domains') ? g:fugitive_gitlab_domains : []
-    call map(domains, 'substitute(v:val, "/$", "", "")')
-    let domain_pattern = 'gitlab\.com'
-    let rel_paths = {'gitlab.com': 'https://gitlab.com'}
-    for domain in domains
-        let pattern = split(domain, '://')[-1]
-        " as per issue #8 gitlab hosting may have a relative path,
-        " but that won't appear in the remote
-        let pattern = substitute(pattern, '\v/.*', '', '')
-        let rel_paths[pattern] = domain
-        let domain_pattern .= '\|' . escape(pattern, '.')
-    endfor
+function! s:parse_gitlab_domains() abort
+    let dict_or_list = get(g:, 'fugitive_gitlab_domains', {})
+    let domains = { 'gitlab.com': 'https://gitlab.com' }
+
+    if type(dict_or_list) == type([])
+        for domain in dict_or_list
+            let lhs = substitute(substitute(domain, '^.\{-\}://', '', ''), '/.*', '', '')
+            let domains[lhs] = domain
+        endfor
+    elseif type(dict_or_list) == type({})
+        let domains = extend(domains, dict_or_list)
+    endif
+    return domains
+endfunction
+
+function! gitlab#homepage_for_remote(url) abort
+    let domains = s:parse_gitlab_domains()
 
     " https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols
-    " git://domain:path
-    " https://domain/path
-    " https://user@domain/path
-    " ssh://user@domain/path.git
-    " ssh://user@domain:ssh_port/path.git
-    " user@domain:path
-    let user_re = '[^/@]\+@'
-    let domain_match = '^\%(https\=://\|git://\|' . user_re . '\|ssh://' . user_re . '\)\%(.\{-\}@\)\=\zs\(' . domain_pattern . '\)[/:].\{-\}\ze\%(\.git\)\=$'
-    let base = matchstr(a:remote, domain_match)
-
-    " Remove port
-    let base = substitute(base, ':\d\{1,5}\/', '/', '')
-
-    let base = tr(base, ':', '/')
-    let domain = substitute(base, '\v/.*', '', '')
-
-    let root = get(rel_paths, domain)
-    if empty(root)
-        return ''
+    " [full_url, scheme, host_with_port, host, path]
+    if a:url =~# '://'
+        let match = matchlist(a:url, '^\(https\=://\|git://\|ssh://\)\%([^@/]\+@\)\=\(\([^/:]\+\)\%(:\d\+\)\=\)/\(.\{-\}\)\%(\.git\)\=/\=$')
+    else
+        let match = matchlist(a:url, '^\([^@/]\+@\)\=\(\([^:/]\+\)\):\(.\{-\}\)\%(\.git\)\=/\=$')
+        if empty(match)
+            return ''
+        endif
+        let match[1] = 'ssh://'
     endif
 
-    return substitute(base, '^'.domain, root, '')
+
+    if empty(match)
+        return ''
+    elseif has_key(domains, match[1] . match[2])
+        let key = match[1] . match[2]
+    elseif has_key(domains, match[2])
+        let key = match[2]
+    elseif has_key(domains, match[3])
+        let key = match[3]
+    else
+        return ''
+    endif
+    let root = domains[key]
+
+    " e.g. v:true
+    if type(root) !=# type('') && root
+        let root = key
+    endif
+
+    if empty(root)
+        return ''
+    elseif root !~# '://'
+        let root = (match[1] =~# '^http://' ? 'http://' : 'https://') . root
+    endif
+    return substitute(root, '/$', '', '') . '/' . match[4]
+
 endfunction
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -149,11 +168,9 @@ function! gitlab#api_paths_for_remote(remote) abort
         call s:throw('Not a gitlab repo')
     endif
 
-    let domains = exists('g:fugitive_gitlab_domains') ? g:fugitive_gitlab_domains : []
-    call map(copy(domains), 'substitute(v:val, "/$", "", "")')
-    call extend(domains, ['https://gitlab.com'])
+    let domains = s:parse_gitlab_domains()
 
-    for domain in domains
+    for domain in values(domains)
         let path = substitute(homepage, '^'.domain . '/', '', '')
         if path != homepage
             let project = substitute(path, '/', '%2F', 'g')
