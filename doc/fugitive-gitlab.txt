@@ -96,7 +96,7 @@ The snippet list pane has the following mappings.
   b                     Opens the snippet in your browser
   y                     Copies the contents of the snippet into the specified
                         register (yy also works)
-  dd                    Prompts the user whether the want to delete the
+  dd                    Prompts the user whether they want to delete the
                         snippet (D also works)
 
 See |fugitive| for documentation on fugitive commands

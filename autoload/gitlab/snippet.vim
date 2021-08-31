@@ -121,7 +121,7 @@ function! gitlab#snippet#write(bang, line1, line2, ...) abort
             let data['visibility'] = visibility
         endif
 
-        if has_key(b:gitlab_snippet, 'project_id')
+        if has_key(b:gitlab_snippet, 'project_id') && !empty(b:gitlab_snippet.project_id)
             let data['code'] = text
             let path = '/projects/' . b:gitlab_snippet.project_id . '/snippets/' . b:gitlab_snippet.id
         else
@@ -133,9 +133,9 @@ function! gitlab#snippet#write(bang, line1, line2, ...) abort
 
         echon 'updating snippet ... '
     else
-        let title = get(options, 'title', expand('%'))
+        let title = get(options, 'title', expand('%:t'))
         let desc  = get(options, 'description', 'fugitive-gitlab generated snippet')
-        let name  = get(options, 'name', expand('%'))
+        let name  = get(options, 'name', expand('%:t'))
         if empty(title)
             let title = 'empty.txt'
         endif
@@ -147,7 +147,7 @@ function! gitlab#snippet#write(bang, line1, line2, ...) abort
         \}
 
         if type == 'project'
-            if !has_key(remote, 'project')
+            if !has_key(remote, 'project') || empty(remote.project)
                 call s:error('Not a git repository, cannot work out project')
                 return
             endif
@@ -157,7 +157,9 @@ function! gitlab#snippet#write(bang, line1, line2, ...) abort
             let path = '/projects/' . remote.project . '/snippets'
         else
             " user snippets don't need to set visibility
-            let visibility = get(options, 'visibility', get(g:, 'gitlab_default_visibility'))
+            " GitLab.com disallows internal by default now
+            " https://gitlab.com/gitlab-org/gitlab/-/issues/12388
+            let visibility = get(options, 'visibility', get(g:, 'gitlab_default_visibility', 'private'))
             if !empty(visibility)
                 let data['visibility'] = visibility
             endif
@@ -216,17 +218,6 @@ function! gitlab#snippet#list(...) abort
     let g:gitlab_snippets = {}
     for snippet in snippets
         let snippet['remote'] = remote
-        " 10.7 has project_id, 10.4 does not?
-        " work around for gitlab's lacking project_id, work it out from the
-        " URL. Also gives us the nicer name or project instead of id
-        if match(snippet.web_url, remote.root . '/snippets') < 0
-            let url = snippet.web_url
-            let url = substitute(url, remote.root . '/', '', '')
-            let project = substitute(url, '/snippets.*', '', 'g')
-            let snippet['project_id'] = substitute(project, '/', '%2F', 'g')
-        else
-            let snippet['project_id'] = v:null
-        endif
 
         try
             " Don't store info we don't use
