@@ -114,18 +114,25 @@ function! gitlab#snippet#write(bang, line1, line2, ...) abort
         if !empty(desc)
             let data['description'] = desc
         endif
-        if !empty(name)
-            let data['file_name'] = name
-        endif
         if !empty(visibility)
             let data['visibility'] = visibility
         endif
 
+        let file_data = {
+                    \'content': text,
+                    \'action': 'update',
+                    \'file_path': b:gitlab_snippet.files[0].path,
+                    \}
+
+        if !empty(name)
+            let file_data.file_path = name
+            let file_data.action = 'rename'
+        endif
+        let data.files = [file_data]
+
         if has_key(b:gitlab_snippet, 'project_id') && !empty(b:gitlab_snippet.project_id)
-            let data['code'] = text
             let path = '/projects/' . b:gitlab_snippet.project_id . '/snippets/' . b:gitlab_snippet.id
         else
-            let data['content'] = text
             let path = '/snippets/' . b:gitlab_snippet.id
         endif
 
@@ -142,8 +149,11 @@ function! gitlab#snippet#write(bang, line1, line2, ...) abort
 
         let data = {
             \'title': title,
-            \'file_name': name,
-            \'description': desc
+            \'description': desc,
+            \'files': [{
+            \  'file_path': name,
+            \  'content': text,
+            \}],
         \}
 
         if type == 'project'
@@ -152,8 +162,7 @@ function! gitlab#snippet#write(bang, line1, line2, ...) abort
                 return
             endif
             " project must have visibility set
-            let data['visibility'] = get(options, 'visibility', get(g:, 'gitlab_default_visibility', 'public'))
-            let data['code'] = text
+            let data['visibility'] = get(options, 'visibility', get(g:, 'gitlab_default_visibility', 'private'))
             let path = '/projects/' . remote.project . '/snippets'
         else
             " user snippets don't need to set visibility
@@ -163,7 +172,6 @@ function! gitlab#snippet#write(bang, line1, line2, ...) abort
             if !empty(visibility)
                 let data['visibility'] = visibility
             endif
-            let data['content'] = text
             let path = '/snippets'
         endif
 
@@ -182,7 +190,6 @@ function! gitlab#snippet#write(bang, line1, line2, ...) abort
         call s:error(v:errmsg)
         return
     endtry
-
 endfunction
 
 "[{"id":1700538,"title":"test","file_name":"test.md","description":"test project snippet","author":{"id":1672441,"name":"Steven Humphrey","username":"shumphrey","state":"active","avatar_url":"https://secure.gravatar.com/avatar/a5a6c4ee136cf136c6c379116a0caaeb?s=80\u0026d=identicon","web_url":"https://gitlab.com/shumphrey"},"updated_at":"2018-02-23T19:37:07.150Z","created_at":"2018-02-23T19:37:07.150Z","project_id":5360561,"web_url":"https://gitlab.com/shumphrey/fugitive-gitlab.vim/snippets/1700538"}]
@@ -355,11 +362,18 @@ function! s:autocmd_update_gitlab_snippet() abort
 
     let id  = get(b:gitlab_snippet, 'id')
     let pid = get(b:gitlab_snippet, 'project_id')
+
+    let data = {
+        \'files': [{
+            \'content': lines,
+            \'action': 'update',
+            \'file_path': b:gitlab_snippet.files[0].path,
+        \}]
+    \}
+
     if !empty(pid)
-        let data = {'code': lines}
         let path = '/projects/' . pid . '/snippets/' . id
     else
-        let data = {'content': lines}
         let path = '/snippets/' . id
     endif
 
@@ -413,7 +427,7 @@ function! s:download_snippet(snippet) abort
     for header in headers
         call extend(data, ['-H', header])
     endfor
-    call extend(data, [a:snippet.raw_url])
+    call extend(data, [a:snippet.remote.root . '/api/v4/snippets/' . a:snippet.id . '/raw'])
 
     let options = join(map(copy(data), 'shellescape(v:val)'), ' ')
     call system('curl '.options .'> '.shellescape(tempsnippet))

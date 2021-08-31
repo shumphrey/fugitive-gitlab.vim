@@ -59,7 +59,7 @@ let g:gitlab_snippets = {}
 " autocompletion for :Gsnip command
 " completes the previous snippet id and the remote name
 function! s:write_snippet_comp(lead, cmd, pos) abort
-    let list = [ '-d', '-p', '-t', '-u', '-v' ]
+    let list = [ '-d', '-p', '-t', '-u', '-v', '-f' ]
 
     let remotes = keys(g:gitlab_api_keys)
     try
