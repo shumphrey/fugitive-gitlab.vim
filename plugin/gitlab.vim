@@ -34,6 +34,9 @@ function! s:SetUpMessage(filename) abort
         \ a:filename !~# '\.git[\/].*MSG$'
     return
   endif
+  if !exists('g:gitlab_api_keys') || empty(g:gitlab_api_keys)
+      return
+  endif
   let dir = exists('*FugitiveConfigGetRegexp') ? FugitiveGitDir() : FugitiveExtractGitDir(a:filename)
   if !empty(dir) && !empty(gitlab#homepage_for_remote(FugitiveRemoteUrl('', dir)))
     setlocal omnifunc=gitlab#omnifunc
