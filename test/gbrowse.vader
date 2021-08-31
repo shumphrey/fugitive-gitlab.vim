@@ -141,17 +141,6 @@ Execute (GBrowse - Short form ssh remote with non-standard ssh user):
 
     AssertEqual 'https://gitlab.com/shumphrey/fugitive-gitlab.vim/blob/master/myfile.vim', url
 
-Execute (GBrowse - Short form ssh remote with non-standard port):
-    let opts = {
-      \'remote': 'git@gitlab.com:12345/shumphrey/fugitive-gitlab.vim.git',
-      \'commit': 'master',
-      \'type': 'blob',
-      \'path': 'myfile.vim'
-    \}
-    let url = g:fugitive_browse_handlers[0](opts)
-
-    AssertEqual 'https://gitlab.com/shumphrey/fugitive-gitlab.vim/blob/master/myfile.vim', url
-
 Execute (GBrowse - Does not match non-gitlab remote):
     let opts = {
       \'commit': 'master',

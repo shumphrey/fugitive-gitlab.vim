@@ -1,4 +1,6 @@
 filetype off
+set rtp+=../../../plugged/vader.vim/
+set rtp+=../../../plugged/vim-fugitive/
 set rtp+=../../vader.vim/
 set rtp+=../../vim-fugitive/
 set rtp+=../vader.vim/
