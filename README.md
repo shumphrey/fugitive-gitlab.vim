@@ -5,7 +5,7 @@
 [fugitive.vim][] is undoubtedly the best Git wrapper of all time.
 
 This plugin allows you to use it with https://gitlab.com or your own
-private gitlab instance.
+private GitLab instance.
 
 * Enables `:GBrowse` from fugitive.vim to open GitLab URLs
 
@@ -17,11 +17,11 @@ private gitlab instance.
 Install it as you would install [fugitive.vim][]
 (you will also need [fugitive.vim][] installed)
 
-To use private gitlab repositories add the following to your .vimrc
+To use private GitLab repositories add the following to your .vimrc
 
     let g:fugitive_gitlab_domains = ['https://my.gitlab.com']
 
-fugitive command `:GBrowse` will now work with gitlab URLs.
+Fugitive command `:GBrowse` will now work with GitLab URLs.
 
 [Curl](http://curl.haxx.se/) is required for features
 that use the GitLab API (i.e., `:GBrowse` doesn't need it).
@@ -30,7 +30,7 @@ with api permissions and add it to your vimrc
 
     let g:gitlab_api_keys = {'gitlab.com': 'myaccesstoken'}
 
-To use omnicompletion with a private gitlab repository
+To use omnicompletion with a private GitLab repository
 
     let g:gitlab_api_keys = {'gitlab.com': 'mytoken1', 'my.gitlab.private': 'mytoken2' }
 
@@ -39,7 +39,7 @@ Omnicompletion functionality is subject to change.
 ## Requirements
 
 fugitive-gitlab.vim requires a modern [fugitive.vim][].
-API features require a gitlab instance with v4 of the API.
+API features require a GitLab instance with v4 of the API.
 
 [fugitive.vim]: https://github.com/tpope/vim-fugitive
 
