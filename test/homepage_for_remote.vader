@@ -2,110 +2,110 @@ Before:
     Save g:fugitive_gitlab_domains
     let g:fugitive_gitlab_domains = ['https://my.gitlab.com']
 
-    unlet! g:autoloaded_fugitive_gitlab
-    runtime autoload/gitlab.vim
+    unlet! g:autoloaded_fugitive_gitlab_fugitive
+    runtime autoload/gitlab/fugitive.vim
 
 After:
     Restore g:fugitive_gitlab_domains
 
-Execute (gitlab#homepage_for_remote - git@ url):
+Execute (gitlab#fugitive#homepage_for_remote - git@ url):
     let expected = 'https://my.gitlab.com/shumphrey/fugitive-gitlab.vim'
-    let url = gitlab#homepage_for_remote('git@my.gitlab.com:shumphrey/fugitive-gitlab.vim.git')
+    let url = gitlab#fugitive#homepage_for_remote('git@my.gitlab.com:shumphrey/fugitive-gitlab.vim.git')
     AssertEqual url, expected
 
-Execute (gitlab#homepage_for_remote - https:// url):
+Execute (gitlab#fugitive#homepage_for_remote - https:// url):
     let expected = 'https://my.gitlab.com/shumphrey/fugitive-gitlab.vim'
-    let url = gitlab#homepage_for_remote('https://my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    let url = gitlab#fugitive#homepage_for_remote('https://my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
     AssertEqual url, expected
 
-Execute (gitlab#homepage_for_remote - ssh://git@ url):
+Execute (gitlab#fugitive#homepage_for_remote - ssh://git@ url):
     let expected = 'https://my.gitlab.com/shumphrey/fugitive-gitlab.vim'
-    let url = gitlab#homepage_for_remote('ssh://git@my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    let url = gitlab#fugitive#homepage_for_remote('ssh://git@my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
     AssertEqual url, expected
 
-Execute (gitlab#homepage_for_remote - https://user@ url):
+Execute (gitlab#fugitive#homepage_for_remote - https://user@ url):
     let expected = 'https://my.gitlab.com/shumphrey/fugitive-gitlab.vim'
-    let url = gitlab#homepage_for_remote('https://shumphrey@my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    let url = gitlab#fugitive#homepage_for_remote('https://shumphrey@my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
     AssertEqual url, expected
-    let url = gitlab#homepage_for_remote('https://shumphrey:mypassword@my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    let url = gitlab#fugitive#homepage_for_remote('https://shumphrey:mypassword@my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
     AssertEqual url, expected
-    let url = gitlab#homepage_for_remote('https://shumphrey:mypassword@my.gitlab.com:5000/shumphrey/fugitive-gitlab.vim.git')
+    let url = gitlab#fugitive#homepage_for_remote('https://shumphrey:mypassword@my.gitlab.com:5000/shumphrey/fugitive-gitlab.vim.git')
     AssertEqual url, expected
 
 Execute (gitlab@homepage_for_remote - ssh://user@ url):
     let expected = 'https://my.gitlab.com/shumphrey/fugitive-gitlab.vim'
-    let url = gitlab#homepage_for_remote('ssh://myrandomuser@my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    let url = gitlab#fugitive#homepage_for_remote('ssh://myrandomuser@my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
     AssertEqual url, expected
-    let url = gitlab#homepage_for_remote('ssh://myrandomuser:mypassword@my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    let url = gitlab#fugitive#homepage_for_remote('ssh://myrandomuser:mypassword@my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
     AssertEqual url, expected
-    let url = gitlab#homepage_for_remote('ssh://myrandomuser:mypassword@my.gitlab.com:5000/shumphrey/fugitive-gitlab.vim.git')
-    AssertEqual url, expected
-
-Execute (gitlab#homepage_for_remote - user@domain:path url):
-    let url = gitlab#homepage_for_remote('randomuser@my.gitlab.com:shumphrey/fugitive-gitlab.vim.git')
-    AssertEqual url, expected
-    let url = gitlab#homepage_for_remote('randomuser:randompassword@my.gitlab.com:shumphrey/fugitive-gitlab.vim.git')
+    let url = gitlab#fugitive#homepage_for_remote('ssh://myrandomuser:mypassword@my.gitlab.com:5000/shumphrey/fugitive-gitlab.vim.git')
     AssertEqual url, expected
 
-Execute (gitlab#homepage_for_remote - gitlab.com):
+Execute (gitlab#fugitive#homepage_for_remote - user@domain:path url):
+    let url = gitlab#fugitive#homepage_for_remote('randomuser@my.gitlab.com:shumphrey/fugitive-gitlab.vim.git')
+    AssertEqual url, expected
+    let url = gitlab#fugitive#homepage_for_remote('randomuser:randompassword@my.gitlab.com:shumphrey/fugitive-gitlab.vim.git')
+    AssertEqual url, expected
+
+Execute (gitlab#fugitive#homepage_for_remote - gitlab.com):
     unlet g:fugitive_gitlab_domains
     let expected = 'https://gitlab.com/shumphrey/fugitive-gitlab.vim'
-    let url1 = gitlab#homepage_for_remote('git@gitlab.com:shumphrey/fugitive-gitlab.vim.git')
-    let url2 = gitlab#homepage_for_remote('https://gitlab.com/shumphrey/fugitive-gitlab.vim.git')
-    let url3 = gitlab#homepage_for_remote('ssh://git@gitlab.com/shumphrey/fugitive-gitlab.vim.git')
-    let url4 = gitlab#homepage_for_remote('https://user@gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    let url1 = gitlab#fugitive#homepage_for_remote('git@gitlab.com:shumphrey/fugitive-gitlab.vim.git')
+    let url2 = gitlab#fugitive#homepage_for_remote('https://gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    let url3 = gitlab#fugitive#homepage_for_remote('ssh://git@gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    let url4 = gitlab#fugitive#homepage_for_remote('https://user@gitlab.com/shumphrey/fugitive-gitlab.vim.git')
     AssertEqual url1, expected
     AssertEqual url2, expected
     AssertEqual url3, expected
     AssertEqual url4, expected
 
 " github issue #8
-Execute (gitlab#homepage_for_remote - ssh://git@ url with relative path):
+Execute (gitlab#fugitive#homepage_for_remote - ssh://git@ url with relative path):
     let g:fugitive_gitlab_domains = ['https://example.com/rel_path']
     let expected = 'https://example.com/rel_path/user/repo'
-    let url = gitlab#homepage_for_remote('ssh://git@example.com/user/repo.git')
+    let url = gitlab#fugitive#homepage_for_remote('ssh://git@example.com/user/repo.git')
     AssertEqual url, expected
 
-Execute (gitlab#homepage_for_remote - http:// non-https):
+Execute (gitlab#fugitive#homepage_for_remote - http:// non-https):
     let g:fugitive_gitlab_domains = ['http://my.gitlab.com']
     let expected = 'http://my.gitlab.com/shumphrey/fugitive-gitlab.vim'
-    let url = gitlab#homepage_for_remote('http://my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    let url = gitlab#fugitive#homepage_for_remote('http://my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
     AssertEqual url, expected
 
-Execute (gitlab#homepage_for_remote - trailing /):
+Execute (gitlab#fugitive#homepage_for_remote - trailing /):
     let g:fugitive_gitlab_domains = ['https://my.gitlab.com/']
     let expected = 'https://my.gitlab.com/shumphrey/fugitive-gitlab.vim'
-    let url = gitlab#homepage_for_remote('https://my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    let url = gitlab#fugitive#homepage_for_remote('https://my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
     AssertEqual url, expected
 
-Execute (gitlab#homepage_for_remote - simple dict config):
+Execute (gitlab#fugitive#homepage_for_remote - simple dict config):
     let g:fugitive_gitlab_domains = {
       \   'my.gitlab.com': 'https://my.gitlab.com'
       \ }
     let expected = 'https://my.gitlab.com/shumphrey/fugitive-gitlab.vim'
-    let url = gitlab#homepage_for_remote('https://my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    let url = gitlab#fugitive#homepage_for_remote('https://my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
     AssertEqual url, expected
 
-Execute (gitlab#homepage_for_remote - simple dict config with truthy value):
+Execute (gitlab#fugitive#homepage_for_remote - simple dict config with truthy value):
     let g:fugitive_gitlab_domains = {
       \   'my.gitlab.com': v:true,
       \ }
     let expected = 'https://my.gitlab.com/shumphrey/fugitive-gitlab.vim'
-    let url = gitlab#homepage_for_remote('https://my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    let url = gitlab#fugitive#homepage_for_remote('https://my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
     AssertEqual url, expected
 
-Execute (gitlab#homepage_for_remote - simple dict config with explicit ssh://):
+Execute (gitlab#fugitive#homepage_for_remote - simple dict config with explicit ssh://):
     let g:fugitive_gitlab_domains = {
       \   'ssh://ssh.host': 'https://web.host',
       \ }
     let expected = 'https://web.host/shumphrey/fugitive-gitlab.vim'
-    let url = gitlab#homepage_for_remote('ssh://ssh.host/shumphrey/fugitive-gitlab.vim.git')
+    let url = gitlab#fugitive#homepage_for_remote('ssh://ssh.host/shumphrey/fugitive-gitlab.vim.git')
     AssertEqual url, expected
 
-Execute (gitlab#homepage_for_remote - simple dict config with insecure host):
+Execute (gitlab#fugitive#homepage_for_remote - simple dict config with insecure host):
     let g:fugitive_gitlab_domains = {
       \   'my.gitlab.com': 'http://my.gitlab.com',
       \ }
     let expected = 'http://my.gitlab.com/shumphrey/fugitive-gitlab.vim'
-    let url = gitlab#homepage_for_remote('git@my.gitlab.com:shumphrey/fugitive-gitlab.vim.git')
+    let url = gitlab#fugitive#homepage_for_remote('git@my.gitlab.com:shumphrey/fugitive-gitlab.vim.git')
     AssertEqual url, expected

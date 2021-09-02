@@ -5,7 +5,7 @@
 " Plugs in to fugitive.vim and provides a gitlab hook for :GBrowse
 " Relies on fugitive.vim by tpope <http://tpo.pe>
 " See fugitive.vim for more details
-" Requires fugitive.vim 2.1 or greater
+" Requires fugitive.vim 3.0 or greater
 "
 " If using https://gitlab.com, everything might just work.
 " If using a private gitlab, you need to specify the gitlab domains for your
@@ -13,7 +13,7 @@
 " e.g.
 "   let g:fugitive_gitlab_domains = ['https://gitlab.mydomain.com']
 "
-" known to work with gitlab 7.14.1 on 2015-09-14
+" Known to work with gitlab 7.14.1 on 2015-09-14
 
 if exists('g:loaded_fugitive_gitlab')
     finish
@@ -25,8 +25,8 @@ if !exists('g:fugitive_browse_handlers')
     let g:fugitive_browse_handlers = []
 endif
 
-if index(g:fugitive_browse_handlers, function('gitlab#fugitive_handler')) < 0
-    call insert(g:fugitive_browse_handlers, function('gitlab#fugitive_handler'))
+if index(g:fugitive_browse_handlers, function('gitlab#fugitive#handler')) < 0
+    call insert(g:fugitive_browse_handlers, function('gitlab#fugitive#handler'))
 endif
 
 function! s:SetUpMessage(filename) abort
@@ -38,7 +38,7 @@ function! s:SetUpMessage(filename) abort
       return
   endif
   let dir = exists('*FugitiveConfigGetRegexp') ? FugitiveGitDir() : FugitiveExtractGitDir(a:filename)
-  if !empty(dir) && !empty(gitlab#homepage_for_remote(FugitiveRemoteUrl('', dir)))
+  if !empty(dir) && !empty(gitlab#fugitive#homepage_for_remote(FugitiveRemoteUrl('', dir)))
     setlocal omnifunc=gitlab#omnifunc
   endif
 endfunction
