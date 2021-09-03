@@ -23,4 +23,30 @@ function! gitlab#utils#parse_gitlab_domains() abort
     return domains
 endfunction
 
+function! gitlab#utils#split_remote(remote) abort
+    let homepage = gitlab#fugitive#homepage_for_remote(a:remote)
+
+    if empty(homepage)
+        call gitlab#utils#throw('Not a gitlab repo')
+    endif
+
+    let domains = gitlab#utils#parse_gitlab_domains()
+
+    for [key, url] in items(domains)
+        let path = substitute(homepage, '^'.url . '/', '', '')
+        if path != homepage
+            let project = substitute(path, '/', '%2F', 'g')
+            let root = url
+            let domain = key
+            break
+        endif
+    endfor
+
+    if len(root) < 1
+        call gitlab#utils#throw(a:remote . ' is not a known gitlab remote')
+    endif
+
+    return {'root': root, 'project': project, 'domain': domain}
+endfunction
+
 " vim: set ts=4 sw=4 et foldmethod=indent foldnestmax=1 :

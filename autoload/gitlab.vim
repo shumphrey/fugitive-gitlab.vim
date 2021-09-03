@@ -3,11 +3,25 @@ if exists('g:autoloaded_fugitive_gitlab')
 endif
 let g:autoloaded_fugitive_gitlab = 1
 
+function! s:gitlab_project_from_repo(...) abort
+    let validremote = '\.\|\.\=/.*\|[[:alnum:]_-]\+\%(://.\{-\}\)\='
+    if len(a:000) > 0
+        let remote = matchstr(join(a:000, ' '),'@\zs\%('.validremote.'\)$')
+    else
+        let remote = 'origin'
+    endif
+
+    let raw = FugitiveRemoteUrl(remote)
+
+    return gitlab#utils#split_remote(raw)
+endfunction
 
 let s:reference = '\<\%(\c\%(clos\|resolv\|referenc\)e[sd]\=\|\cfix\%(e[sd]\)\=\)\>'
 function! gitlab#omnifunc(findstart, base) abort
     " Currently omnicompletion requires origin this is the same as rhubarb
     let remote = 'origin'
+
+    let res = s:gitlab_project_from_repo('@' . remote)
 
     if a:findstart
         let existing = matchstr(getline('.')[0:col('.')-1],s:reference.'\s\+\zs[^#/,.;]*$\|[#@[:alnum:]-]*$')
@@ -20,11 +34,11 @@ function! gitlab#omnifunc(findstart, base) abort
             endif
 
             let response = []
-            if g:gitlab_members_type == 'project' || g:gitlab_members_type == 'both'
-                call extend(response, gitlab#api#members(a:base, 'project', '@'.remote))
+            if g:gitlab_members_type ==? 'project' || g:gitlab_members_type ==? 'both'
+                call extend(response, gitlab#api#members(res.domain, res.project, a:base, 'project'))
             endif
-            if g:gitlab_members_type == 'group' || g:gitlab_members_type == 'both'
-                call extend(response, gitlab#api#members(a:base, 'group', '@'.remote))
+            if g:gitlab_members_type ==? 'group' || g:gitlab_members_type ==? 'both'
+                call extend(response, gitlab#api#members(res.domain, res.project, a:base, 'group'))
             endif
 
             " This can be a bit slow as it results in two commits
@@ -48,7 +62,7 @@ function! gitlab#omnifunc(findstart, base) abort
                 let g:gitlab_issues_type = 'project'
             endif
 
-            let response = gitlab#api#issues(query, g:gitlab_issues_type, '@'.remote)
+            let response = gitlab#api#issues(res.domain, res.project, query, g:gitlab_issues_type)
             if type(response) != type([])
                 call gitlab#utils#throw('unknown error')
             endif

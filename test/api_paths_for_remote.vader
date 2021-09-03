@@ -11,20 +11,20 @@ After:
 
 Execute (gitlab#api_paths_for_remote):
     let g:fugitive_gitlab_domains = ['https://my.gitlab.com']
-    let expected = {'root': 'https://my.gitlab.com/api/v4', 'project': 'shumphrey%2Ffugitive-gitlab.vim'}
+    let expected = {'root': 'https://my.gitlab.com', 'project': 'shumphrey%2Ffugitive-gitlab.vim', 'domain': 'my.gitlab.com'}
 
-    let res = gitlab#api#paths_for_remote('git@my.gitlab.com:shumphrey/fugitive-gitlab.vim.git')
+    let res = gitlab#utils#split_remote('git@my.gitlab.com:shumphrey/fugitive-gitlab.vim.git')
     AssertEqual res, expected
 
-    let res = gitlab#api#paths_for_remote('https://my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    let res = gitlab#utils#split_remote('https://my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
     AssertEqual res, expected
 
-    let res = gitlab#api#paths_for_remote('ssh://git@my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    let res = gitlab#utils#split_remote('ssh://git@my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
     AssertEqual res, expected
 
 Execute (gitlab#api_paths_for_remote - with dict config):
     let g:fugitive_gitlab_domains = { 'my.gitlab.com': 'https://my.gitlab.com' }
 
-    let expected = {'root': 'https://my.gitlab.com/api/v4', 'project': 'shumphrey%2Ffugitive-gitlab.vim'}
-    let res = gitlab#api#paths_for_remote('git@my.gitlab.com:shumphrey/fugitive-gitlab.vim.git')
+    let expected = {'root': 'https://my.gitlab.com', 'project': 'shumphrey%2Ffugitive-gitlab.vim', 'domain': 'my.gitlab.com'}
+    let res = gitlab#utils#split_remote('git@my.gitlab.com:shumphrey/fugitive-gitlab.vim.git')
     AssertEqual res, expected

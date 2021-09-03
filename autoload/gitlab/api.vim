@@ -3,7 +3,19 @@ if exists('g:autoloaded_fugitive_gitlab_api')
 endif
 let g:autoloaded_fugitive_gitlab_api = 1
 
-function! gitlab#api#json_parse(string) abort
+" This file contains functions that deal directly with the GitLab API and
+" vimscript
+" This file has no vim ui or commands.
+" Every public function should take a gitlab domain name where appropriate
+" e.g. the key to gitlab_api_keys
+" Every public function should return the contents of the GitLab API
+"
+" remote - a git url, e.g. git@gitlab.com:/foo (obtained via fugitive)
+" domain - a key in the g:gitlab_api_keys & g:fugitive_gitlab_domains dictionary, e.g. gitlab.com
+" root - https://gitlab.com
+" project - shumphrey/fugitive-gitlab.vim
+
+function! s:json_parse(string) abort
     if exists('*json_decode')
         return json_decode(a:string)
     endif
@@ -11,14 +23,14 @@ function! gitlab#api#json_parse(string) abort
     let stripped = substitute(a:string,'\C"\(\\.\|[^"\\]\)*"','','g')
     if stripped !~# "[^,:{}\\[\\]0-9.\\-+Eaeflnr-u \n\r\t]"
         try
-            return eval(substitute(a:string,"[\r\n]"," ",'g'))
+            return eval(substitute(a:string,'[\r\n]',' ','g'))
         catch
         endtry
     endif
-    call gitlab#utils#throw("invalid JSON: ".a:string)
+    call gitlab#utils#throw('invalid JSON: '.a:string)
 endfunction
 
-function! gitlab#api#json_generate(object) abort
+function! s:json_generate(object) abort
     if exists('*json_encode')
         return json_encode(a:object)
     endif
@@ -37,67 +49,33 @@ function! gitlab#api#json_generate(object) abort
     endif
 endfunction
 
-function! s:gitlab_api_key(root) abort
-    if exists('b:gitlab_api_key')
-        return b:gitlab_api_key
+function! s:gitlab_api_key(domain) abort
+    if exists('b:gitlab_api_keys') && has_key(b:gitlab_api_keys, a:domain)
+        return b:gitlab_api_keys[a:domain]
     endif
 
     " gitlab_api_keys: { "gitlab.com": "myapitoken" }
     if exists('g:gitlab_api_keys')
-        let keys = items(g:gitlab_api_keys)
-        for item in keys
-            if match(a:root, item[0]) >= 0
-                return item[1]
-            endif
-        endfor
-    endif
-
-    call gitlab#utils#throw('Missing g:gitlab_api_keys')
-endfunction
-
-function! gitlab#api#paths_for_remote(remote) abort
-    let homepage = gitlab#fugitive#homepage_for_remote(a:remote)
-
-    if empty(homepage)
-        call gitlab#utils#throw('Not a gitlab repo')
-    endif
-
-    let domains = gitlab#utils#parse_gitlab_domains()
-
-    for domain in values(domains)
-        let path = substitute(homepage, '^'.domain . '/', '', '')
-        if path != homepage
-            let project = substitute(path, '/', '%2F', 'g')
-            let root = domain . '/api/v4'
-            break
+        let key = get(g:gitlab_api_keys, a:domain)
+        if !empty(key)
+            return key
         endif
-    endfor
-
-    if len(root) < 1
-        call gitlab#utils#throw(a:remote . " is not a known gitlab remote")
     endif
 
-    return {'root': root, 'project': project}
+    call gitlab#utils#throw('Missing g:gitlab_api_keys or remote does not exist')
 endfunction
 
-function! s:gitlab_project_from_repo(...) abort
-    let validremote = '\.\|\.\=/.*\|[[:alnum:]_-]\+\%(://.\{-\}\)\='
-    if len(a:000) > 0
-        let remote = matchstr(join(a:000, ' '),'@\zs\%('.validremote.'\)$')
-    else
-        let remote = 'origin'
-    endif
-
-    let raw = FugitiveRemoteUrl(remote)
-
-    return gitlab#api#paths_for_remote(raw)
-endfunction
 
 " Makes a request to the api and returns the resulting text
+" :call setreg('+', b:gitlab_last_curl)
 function! gitlab#api#request(domain, path, ...) abort
     let key = s:gitlab_api_key(a:domain)
-
-    let url = a:domain . a:path
+    let domains = gitlab#utils#parse_gitlab_domains()
+    let root = get(domains, a:domain)
+    if empty(root)
+        call gitlab#utils#throw('No such domain')
+    endif
+    let url = root . '/api/v4' . a:path
 
     let headers = [
         \'PRIVATE-TOKEN: ' . key,
@@ -106,16 +84,16 @@ function! gitlab#api#request(domain, path, ...) abort
     \]
 
     if a:0
-        let json = gitlab#api#json_generate(a:0)
+        let json = s:json_generate(a:1)
     endif
 
     if exists('*Post')
         if exists('json')
-            let raw = Post(url, headers, json)
+            let raw = Post(url, headers, json, a:0 > 1 ? a:2 : 'POST')
         else
             let raw = Post(url, headers)
         endif
-        return gitlab#api#json_parse(raw)
+        return s:json_parse(raw)
     endif
 
     if !executable('curl')
@@ -127,61 +105,79 @@ function! gitlab#api#request(domain, path, ...) abort
         call extend(data, ['-H', header])
     endfor
     if a:0
-        let temp = tempfile()
-        writefile([json], temp)
-        call extend(data, ['-XPOST'])
+        let temp = tempname()
+        call writefile([json], temp)
         call extend(data, ['--data', '@'.temp])
+    endif
+    if a:0 > 1
+        call extend(data, ['-X' . a:2])
+    elseif a:0
+        call extend(data, ['-XPOST'])
     endif
 
     call extend(data, [url])
 
     let options = join(map(copy(data), 'shellescape(v:val)'), ' ')
-    let raw = system('curl '.options)
+    let b:gitlab_last_curl = 'curl '.options
+    silent let raw = system('curl '.options)
+    let b:gitlab_last_raw = raw
 
-    let jsonres = gitlab#api#json_parse(raw)
-    if type(jsonres) == type({}) && !empty(get(jsonres, 'message'))
-        call gitlab#utils#throw(get(jsonres, 'message'))
+    if !empty(v:shell_error)
+        call gitlab#api#throw('shell error: ' . v:shell_error)
     endif
+
+    " Delete returns 204 no content, no json
+    if a:0 > 1 && a:2 ==# 'DELETE'
+        return
+    endif
+
+    if empty(raw)
+        call gitlab#utils#throw('No output from api')
+    endif
+
+    let jsonres = s:json_parse(raw)
+    if type(jsonres) == type({}) && !empty(get(jsonres, 'message'))
+        call gitlab#utils#throw(s:json_generate(get(jsonres, 'message')))
+    endif
+
+    if type(jsonres) == type({}) && has_key(jsonres, 'error')
+        call gitlab#utils#throw(s:json_generate(get(jsonres, 'error')))
+    endif
+
     return jsonres
 endfunction
 
-function! gitlab#api#issues(query, type, ...) abort
-    let res = call('s:gitlab_project_from_repo', a:000)
-
-    if a:type == 'group'
-        let group = substitute(res.project, '%2F.*', '', '')
+function! gitlab#api#issues(domain, project, query, type) abort
+    if a:type ==# 'group'
+        let group = substitute(a:project, '%2F.*', '', '')
         let path = '/groups/' . group . '/issues'
     else
-        let path = '/projects/' . res.project . '/issues'
+        let path = '/projects/' . a:project . '/issues'
     endif
 
     let params = '?scope=all&state=opened&per_page=100'
     let params .= '&search='.a:query
-    return gitlab#api#request(res.root, path . params)
+    return gitlab#api#request(a:domain, path . params)
 endfunction
 
-" when querying members "collaborators"
 " we probably want both project members and group members
-function! gitlab#api#members(query, type, ...) abort
-    let res = call('s:gitlab_project_from_repo', a:000)
-    if a:type == 'group'
-        let group = substitute(res.project, '%2F.*', '', '')
+function! gitlab#api#members(domain, project, query, type, ...) abort
+    if a:type ==# 'group'
+        let group = substitute(a:project, '%2F.*', '', '')
         let path = '/groups/' . group . '/members'
     else
-        let path = '/projects/' . res.project . '/members'
+        let path = '/projects/' . a:project . '/members'
     endif
 
     let params = '?per_page=100&query='.substitute(a:query, '@', '', '')
-    return gitlab#api#request(res.root, path . params)
+    return gitlab#api#request(a:domain, path . params)
 endfunction
 
-function! gitlab#api#contributors(...) abort
-    let res = call('s:gitlab_project_from_repo', a:000)
-
-    let path = '/projects/' . res.project . '/repository/contributors'
+function! gitlab#api#contributors(domain, project) abort
+    let path = '/projects/' . a:project . '/repository/contributors'
     let params = '?per_page=100'
 
-    return gitlab#api#request(res.root, path . params)
+    return gitlab#api#request(a:domain, path . params)
 endfunction
 
 " vim: set ts=4 sw=4 et foldmethod=indent foldnestmax=1 :

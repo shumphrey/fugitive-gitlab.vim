@@ -35,7 +35,7 @@ function! gitlab#fugitive#handler(opts, ...)
     if get(a:opts, 'type', '') ==# 'tree' || get(a:opts, 'path', '') =~# '/$'
         let url = substitute(root . '/tree/' . commit . '/' . path,'/$','', '')
     elseif get(a:opts, 'type', '') ==# 'blob' || path =~# '[^/]$'
-        let url = root . "/blob/" . commit . '/' . path
+        let url = root . '/blob/' . commit . '/' . path
         if line2 && line1 == line2
             let url .= '#L'.line1
         elseif line2
