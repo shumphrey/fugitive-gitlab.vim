@@ -1,7 +1,7 @@
-if exists('g:autoloaded_fugitive_gitlab')
+if exists('g:autoloaded_fugitive_gitlab_omnifunc')
     finish
 endif
-let g:autoloaded_fugitive_gitlab = 1
+let g:autoloaded_fugitive_gitlab_omnifunc = 1
 
 function! s:gitlab_project_from_repo(...) abort
     let validremote = '\.\|\.\=/.*\|[[:alnum:]_-]\+\%(://.\{-\}\)\='
@@ -17,7 +17,7 @@ function! s:gitlab_project_from_repo(...) abort
 endfunction
 
 let s:reference = '\<\%(\c\%(clos\|resolv\|referenc\)e[sd]\=\|\cfix\%(e[sd]\)\=\)\>'
-function! gitlab#omnifunc(findstart, base) abort
+function! gitlab#omnifunc#handler(findstart, base) abort
     " Currently omnicompletion requires origin this is the same as rhubarb
     let remote = 'origin'
 
@@ -73,4 +73,4 @@ function! gitlab#omnifunc(findstart, base) abort
     endtry
 endfunction
 
-" vim: set ts=4 sw=4 et foldmethod=indent foldnestmax=1 :
+" vim: set ts=4 sw=4 et :

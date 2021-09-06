@@ -39,7 +39,7 @@ function! s:SetUpMessage(filename) abort
   endif
   let dir = exists('*FugitiveConfigGetRegexp') ? FugitiveGitDir() : FugitiveExtractGitDir(a:filename)
   if !empty(dir) && !empty(gitlab#fugitive#homepage_for_remote(FugitiveRemoteUrl('', dir)))
-    setlocal omnifunc=gitlab#omnifunc
+    setlocal omnifunc=gitlab#omnifunc#handler
   endif
 endfunction
 
@@ -49,7 +49,7 @@ augroup gitlab
     autocmd FileType gitcommit call s:SetUpMessage(expand('<afile>:p'))
   endif
   autocmd BufEnter *
-        \ if expand('%') ==# '' && &previewwindow && pumvisible() && getbufvar('#', '&omnifunc') ==# 'gitlab#omnifunc' |
+        \ if expand('%') ==# '' && &previewwindow && pumvisible() && getbufvar('#', '&omnifunc') ==# 'gitlab#omnifunc#handler' |
         \    setlocal nolist linebreak filetype=markdown |
         \ endif
 augroup END

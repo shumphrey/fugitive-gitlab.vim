@@ -13,4 +13,4 @@ if [[ ! -d "../../vim-fugitive" ]] && [[ ! -d "../vim-fugitive" ]] && [[ ! -d ".
     exit 1
 fi
 
-vim -Nu vimrc -c 'Vader! *' > /dev/null
+vim -Es -Nu vimrc -c 'Vader! *' > /dev/null
