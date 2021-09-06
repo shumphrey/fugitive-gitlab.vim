@@ -17,7 +17,7 @@ private GitLab instance.
 Install it as you would install [fugitive.vim][]
 (you will also need [fugitive.vim][] installed)
 
-To use private GitLab repositories add the following to your .vimrc
+To use private GitLab instances, add the following to your .vimrc
 
     let g:fugitive_gitlab_domains = ['https://my.gitlab.com']
 
