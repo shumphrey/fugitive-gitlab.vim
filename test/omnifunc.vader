@@ -16,7 +16,7 @@ Before:
     unlet! b:post_headers
     unlet! b:post_a000
 
-    let b:gitlab_post_result = '[{"id":461,"iid":24,"project_id":5,"title":"A title","description":"A description","state":"opened","created_at":"2018-01-01T12:48:27.650Z","updated_at":"2018-02-28T14:33:56.073Z","labels":[],"milestone":null,"assignees":[],"author":{"name":"Steven Humphrey","username":"shumphrey","id":1,"state":"active","avatar_url":"https://secure.gravatar.com/avatar/3fca3c33bc65051b13f8c26c1dbab658?s=80\u0026d=identicon","web_url":"https://my.gitlab.com/shumphrey"},"assignee":null,"user_notes_count":1,"upvotes":0,"downvotes":0,"due_date":null,"confidential":false,"web_url":"https://gitlab.inview.local/developer-utils/coffeescript-mikebot/issues/24"},{"id":462,"iid":123,"project_id":5,"title":"A title 2","description":"A description 2","state":"opened","created_at":"2018-01-01T12:48:27.650Z","updated_at":"2018-02-28T14:33:56.073Z","labels":[],"milestone":null,"assignees":[],"author":{"name":"Steven Humphrey","username":"shumphrey","id":1,"state":"active","avatar_url":"https://secure.gravatar.com/avatar/3fca3c33bc65051b13f8c26c1dbab658?s=80\u0026d=identicon","web_url":"https://my.gitlab.com/shumphrey"},"assignee":null,"user_notes_count":1,"upvotes":0,"downvotes":0,"due_date":null,"confidential":false,"web_url":"https://gitlab.inview.local/developer-utils/coffeescript-mikebot/issues/123"}]'
+    let b:gitlab_post_result = '[{"id":461,"iid":24,"project_id":5,"title":"A title","description":"A description","state":"opened","created_at":"2018-01-01T12:48:27.650Z","updated_at":"2018-02-28T14:33:56.073Z","labels":[],"milestone":null,"assignees":[],"author":{"name":"Steven Humphrey","username":"shumphrey","id":1,"state":"active","avatar_url":"https://secure.gravatar.com/avatar/3fca3c33bc65051b13f8c26c1dbab658?s=80\u0026d=identicon","web_url":"https://my.gitlab.com/shumphrey"},"assignee":null,"user_notes_count":1,"upvotes":0,"downvotes":0,"due_date":null,"confidential":false,"web_url":"https://my.gitlab.com/dummy/project/issues/24"},{"id":462,"iid":123,"project_id":5,"title":"A title 2","description":"A description 2","state":"opened","created_at":"2018-01-01T12:48:27.650Z","updated_at":"2018-02-28T14:33:56.073Z","labels":[],"milestone":null,"assignees":[],"author":{"name":"Steven Humphrey","username":"shumphrey","id":1,"state":"active","avatar_url":"https://secure.gravatar.com/avatar/3fca3c33bc65051b13f8c26c1dbab658?s=80\u0026d=identicon","web_url":"https://my.gitlab.com/shumphrey"},"assignee":null,"user_notes_count":1,"upvotes":0,"downvotes":0,"due_date":null,"confidential":false,"web_url":"https://my.gitlab.com/dummy/project/issues/123"}]'
 
     function! Post(url, headers, ...) abort
         let b:post_url = a:url
@@ -56,24 +56,24 @@ Execute (omnifunc - all issues with #):
     \], b:post_headers
 
 Execute (omnifunc - issues matching #test):
-    " search for issues starting with id 123
+    " search for issues starting with #test
     let b:gitlab_post_url = 'https://my.gitlab.com/api/v4/projects/dummy%2Fproject/issues?scope=all&state=opened&per_page=100&search=test'
-    let b:gitlab_post_result = '[{"id":462,"iid":123,"project_id":5,"title":"test","description":"test","state":"opened","created_at":"2018-01-01T12:48:27.650Z","updated_at":"2018-02-28T14:33:56.073Z","labels":[],"milestone":null,"assignees":[],"author":{"name":"Steven Humphrey","username":"shumphrey","id":1,"state":"active","avatar_url":"https://secure.gravatar.com/avatar/3fca3c33bc65051b13f8c26c1dbab658?s=80\u0026d=identicon","web_url":"https://my.gitlab.com/shumphrey"},"assignee":null,"user_notes_count":1,"upvotes":0,"downvotes":0,"due_date":null,"confidential":false,"web_url":"https://gitlab.inview.local/developer-utils/coffeescript-mikebot/issues/123"}]'
+    let b:gitlab_post_result = '[{"id":462,"iid":123,"project_id":5,"title":"test","description":"test","state":"opened","created_at":"2018-01-01T12:48:27.650Z","updated_at":"2018-02-28T14:33:56.073Z","labels":[],"milestone":null,"assignees":[],"author":{"name":"Steven Humphrey","username":"shumphrey","id":1,"state":"active","avatar_url":"https://secure.gravatar.com/avatar/3fca3c33bc65051b13f8c26c1dbab658?s=80\u0026d=identicon","web_url":"https://my.gitlab.com/shumphrey"},"assignee":null,"user_notes_count":1,"upvotes":0,"downvotes":0,"due_date":null,"confidential":false,"web_url":"https://my.gitlab.com/dummy/project/issues/123"}]'
 
     let res = gitlab#omnifunc#handler(0, '#test')
     AssertEqual [{'word': '#123', 'menu': 'test', 'info': 'test', 'abbr': '#123'}], res
 
 Execute (omnifunc - issues matching test, full url):
     let b:gitlab_post_url = 'https://my.gitlab.com/api/v4/projects/dummy%2Fproject/issues?scope=all&state=opened&per_page=100&search=test'
-    let b:gitlab_post_result = '[{"id":462,"iid":123,"project_id":5,"title":"test","description":"test","state":"opened","created_at":"2018-01-01T12:48:27.650Z","updated_at":"2018-02-28T14:33:56.073Z","labels":[],"milestone":null,"assignees":[],"author":{"name":"Steven Humphrey","username":"shumphrey","id":1,"state":"active","avatar_url":"https://secure.gravatar.com/avatar/3fca3c33bc65051b13f8c26c1dbab658?s=80\u0026d=identicon","web_url":"https://my.gitlab.com/shumphrey"},"assignee":null,"user_notes_count":1,"upvotes":0,"downvotes":0,"due_date":null,"confidential":false,"web_url":"https://gitlab.inview.local/developer-utils/coffeescript-mikebot/issues/123"}]'
+    let b:gitlab_post_result = '[{"id":462,"iid":123,"project_id":5,"title":"test","description":"test","state":"opened","created_at":"2018-01-01T12:48:27.650Z","updated_at":"2018-02-28T14:33:56.073Z","labels":[],"milestone":null,"assignees":[],"author":{"name":"Steven Humphrey","username":"shumphrey","id":1,"state":"active","avatar_url":"https://secure.gravatar.com/avatar/3fca3c33bc65051b13f8c26c1dbab658?s=80\u0026d=identicon","web_url":"https://my.gitlab.com/shumphrey"},"assignee":null,"user_notes_count":1,"upvotes":0,"downvotes":0,"due_date":null,"confidential":false,"web_url":"https://my.gitlab.com/dummy/project/issues/123"}]'
 
     let res = gitlab#omnifunc#handler(0, 'test')
     AssertEqual [{'word': 'https://my.gitlab.com/dummy/project/issues/123', 'menu': 'test', 'info': 'test', 'abbr': '#123'}], res
 
 Execute (omnifunc - members):
-    let expected_url = 'https://my.gitlab.com/api/v4/projects/dummy%2Fproject/members?per_page=100&query=shumphrey'
+    let expected_url = 'https://my.gitlab.com/api/v4/projects/dummy%2Fproject/members/all?per_page=100&query=shumphrey'
 
-    let b:gitlab_post_result = '[{"avatar_url":"https://secure.gravatar.com/avatar/fake?s=80&d=identicon","id":5,"state":"active","username":"shumphrey","expires_at":null,"name":"Steven Humphrey","access_level":50,"web_url":"https://gitlab.com/shumphrey"}]'
+    let b:gitlab_post_result = '[{"avatar_url":"https://secure.gravatar.com/avatar/fake?s=80&d=identicon","username":"shumphrey","name":"Steven Humphrey","web_url":"https://gitlab.com/shumphrey"}]'
 
     let data = gitlab#omnifunc#handler(0, '@shumphrey')
     AssertEqual b:post_headers, [
@@ -82,6 +82,27 @@ Execute (omnifunc - members):
         \'Accept: application/json',
     \]
     AssertEqual expected_url, b:post_url
-    AssertEqual data, ['@shumphrey']
+    AssertEqual data, [{'word': '@shumphrey', 'info': 'Steven Humphrey' }]
 
-" vim: set ts=4 sw=4 et :
+Execute (Initialize multi remote test environment):
+    let g:temp_gitlab_repo = tempname() . '/mock_git_repo2/'
+    call system('mkdir -p ' . g:temp_gitlab_repo)
+    exe 'chdir ' . g:temp_gitlab_repo
+    " omnicompletion only works for remotes called origin
+    call system('git init && git remote add origin git@my.gitlab.com:dummy/project.git')
+    call system('git remote add upstream git@second.gitlab.co.uk:dummy/project.git')
+    let b:git_dir = g:temp_gitlab_repo . '/.git'
+
+    let g:fugitive_gitlab_domains = {'my.gitlab.com': 'https://my.gitlab.com', 'second.gitlab.co.uk': 'https://second.gitlab.co.uk' }
+    let g:gitlab_api_keys = {'my.gitlab.com': 'test', 'second.gitlab.com': 'test2' }
+
+    let expected_url = 'https://my.gitlab.com/api/v4/projects/dummy%2Fproject/members/all?per_page=100&query=shum'
+
+    let b:gitlab_post_result = '[{"avatar_url":"https://secure.gravatar.com/avatar/fake?s=80&d=identicon","username":"shumphrey","name":"Steven Humphrey","web_url":"https://gitlab.com/shumphrey"}]'
+
+    let data = gitlab#omnifunc#handler(0, '@shum')
+
+    AssertEqual expected_url, b:post_url
+    AssertEqual data, [{'word': '@shumphrey', 'info': 'Steven Humphrey' }]
+
+" vim: set ts=4 sw=4 et foldmethod=indent foldnestmax=1 :

@@ -9,7 +9,7 @@ private GitLab instance.
 
 * Enables `:GBrowse` from fugitive.vim to open GitLab URLs
 
-* In commit messages, GitLab issues can be omni-completed
+* In commit messages, GitLab issues and users can be omni-completed
   (`<C-X><C-O>`, see `:help compl-omni`).
 
 ## Installation

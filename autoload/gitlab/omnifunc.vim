@@ -3,70 +3,83 @@ if exists('g:autoloaded_fugitive_gitlab_omnifunc')
 endif
 let g:autoloaded_fugitive_gitlab_omnifunc = 1
 
-function! s:gitlab_project_from_repo(...) abort
-    let validremote = '\.\|\.\=/.*\|[[:alnum:]_-]\+\%(://.\{-\}\)\='
-    if len(a:000) > 0
-        let remote = matchstr(join(a:000, ' '),'@\zs\%('.validremote.'\)$')
-    else
-        let remote = 'origin'
-    endif
-
-    let raw = FugitiveRemoteUrl(remote)
-
-    return gitlab#utils#split_remote(raw)
-endfunction
 
 let s:reference = '\<\%(\c\%(clos\|resolv\|referenc\)e[sd]\=\|\cfix\%(e[sd]\)\=\)\>'
 function! gitlab#omnifunc#handler(findstart, base) abort
-    " Currently omnicompletion requires origin this is the same as rhubarb
-    let remote = 'origin'
-
-    let res = s:gitlab_project_from_repo('@' . remote)
+    let res = gitlab#utils#split_remote(FugitiveRemoteUrl())
 
     if a:findstart
-        let existing = matchstr(getline('.')[0:col('.')-1],s:reference.'\s\+\zs[^#/,.;]*$\|[#@[:alnum:]-]*$')
+        let line = getline('.')[0:col('.')-1]
+
+        " contains an @, lets start from there
+        let existing = substitute(matchstr(line, '\s*@[:alnum:]*$'), '^\s*', '', '')
+        if !empty(existing)
+            return col('.') - 1 - strlen(existing)
+        endif
+
+        " Otherwise, start from  "Fixes ..."
+        let existing = matchstr(line,s:reference.'\s\+\zs[^#/,.;]*$\|[#@[:alnum:]-]*$')
         return col('.')-1-strlen(existing)
     endif
+
     try
         if a:base =~# '^@'
-            if !exists('g:gitlab_members_type')
-                let g:gitlab_members_type = 'project'
+            let query = a:base
+            " searching for s or st or sh does not find shumphrey or steven
+            " searching for ste or shu does
+            if len(a:base) < 4
+                let query = ''
+            else
+                let query = substitute(a:base, '^@', '', '')
             endif
 
-            let response = []
-            if g:gitlab_members_type ==? 'project' || g:gitlab_members_type ==? 'both'
-                call extend(response, gitlab#api#members(res.domain, res.project, a:base, 'project'))
-            endif
-            if g:gitlab_members_type ==? 'group' || g:gitlab_members_type ==? 'both'
-                call extend(response, gitlab#api#members(res.domain, res.project, a:base, 'group'))
-            endif
+            let response  = gitlab#api#list_project_members(res.domain, res.project, query)
 
-            " This can be a bit slow as it results in two commits
-            return map(response, '"@".v:val.username')
+            return map(response, '{"word": "@" . v:val.username, "info": v:val.name}')
         else
             if a:base =~# '^#'
                 let prefix = '#'
+                let force_project_issues = v:true
             else
-                let homepage = gitlab#fugitive#homepage_for_remote(FugitiveRemoteUrl(remote))
-                let prefix = homepage . '/issues/'
+                let force_project_issues = v:false
             endif
-            " this differs to rhubarb slightly,
-            " we always search for the search term, unless its purely a number
+
+            " If we've just got numbers, there's little point in searching for numbers
             if a:base =~# '^#\=\d\+$'
                 let query = ''
             else
-                let query = substitute(a:base, '#', '', '')
+                let query = substitute(substitute(a:base, '#', '', ''), '^\s*', '', '')
             endif
 
-            if !exists('g:gitlab_issues_type')
-                let g:gitlab_issues_type = 'project'
+            " Deciding whether to list project, group or all issues is hard
+            " Most of the time, we'll just want to complete project issues
+            " Sometimes a group.
+            " Determining group can't be done from the git information.
+            " shumphrey/fugitive-gitlab.vim, shumphrey is not a group
+            " The api call gitlab#api#project(...) can be issued to get the group
+            let group = get(b:, 'gitlab_group')
+
+            if force_project_issues || empty(group)
+                let response = gitlab#api#list_project_issues(res.domain, res.project, query)
+            elseif !empty(group)
+                let response = gitlab#api#list_group_issues(res.domain, group, query)
+            else
+                echoerr 'Could not get issues for project/group'
+                return []
             endif
 
-            let response = gitlab#api#issues(res.domain, res.project, query, g:gitlab_issues_type)
             if type(response) != type([])
-                call gitlab#utils#throw('unknown error')
+                echoerr 'Unknown response from GitLab'
+                return []
             endif
-            return map(response, '{"word": prefix . v:val.iid, "abbr": "#".v:val.iid, "menu": v:val.title, "info": substitute(v:val.description,"\\r","","g")}')
+
+
+            if exists('prefix') && !empty(prefix)
+                let wordstr = 'prefix . v:val.iid'
+            else
+                let wordstr = 'v:val.web_url'
+            endif
+            return map(response, '{"word": '.wordstr.', "abbr": "#".v:val.iid, "menu": v:val.title, "info": substitute(v:val.description,"\\r","","g")}')
         endif
     catch /^\%(fugitive\|gitlab\):/
         echoerr v:errmsg
