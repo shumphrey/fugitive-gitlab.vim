@@ -1,7 +1,14 @@
 name: Fugitive GitLab
 on: [push, pull_request]
 jobs:
-  vader-test-suite:
+  Vader:
+    strategy:
+      matrix:
+        vim:
+          - package: vim
+            bin: vim
+          - package: neovim
+            bin: nvim
     runs-on: ubuntu-latest
     steps:
       - name: Git clone Vader
@@ -18,7 +25,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: fugitive-gitlab.vim
-      - name: Install vim
-        run: sudo apt-get install -y vim
-      - name: Run vader
-        run: vim -Es -Nu fugitive-gitlab.vim/test/vimrc -c "Vader! fugitive-gitlab.vim/test/*" 2>&1
+      - name: Install packages
+        run: sudo apt-get install -y ${{ matrix.vim.package }} curl
+      - name: Run vader against ${{ matrix.vim.package }}
+        run: ${{ matrix.vim.bin }} -Es -Nu fugitive-gitlab.vim/test/vimrc -c "Vader! fugitive-gitlab.vim/test/*" 2>&1
