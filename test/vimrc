@@ -1,11 +1,7 @@
 filetype off
-set runtimepath+=../../../plugged/vader.vim/
-set runtimepath+=../../../plugged/vim-fugitive/
-set runtimepath+=../../vader.vim/
-set runtimepath+=../../vim-fugitive/
-set runtimepath+=../vader.vim/
-set runtimepath+=../vim-fugitive/
-set runtimepath+=../
+set runtimepath+=./vader.vim/
+set runtimepath+=./vim-fugitive/
+set runtimepath+=./fugitive-gitlab.vim
 filetype plugin indent on
 syntax enable
 set nomore
