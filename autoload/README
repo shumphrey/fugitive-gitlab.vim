@@ -1,0 +1,5 @@
+
+" autoload/gitlab/fugitive.vim - stuff relating to fugitive, e.g. :GBrowse
+" autoload/gitlab/api.vim - stuff relating to gitlab api
+" autoload/gitlab/omnifunc.vim - stuff relating to gitlab omnifunc
+" autoload/gitlab/utils.vim - shared utilities

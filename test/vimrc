@@ -1,11 +1,11 @@
 filetype off
-set rtp+=../../../plugged/vader.vim/
-set rtp+=../../../plugged/vim-fugitive/
-set rtp+=../../vader.vim/
-set rtp+=../../vim-fugitive/
-set rtp+=../vader.vim/
-set rtp+=../vim-fugitive/
-set rtp+=../
+set runtimepath+=../../../plugged/vader.vim/
+set runtimepath+=../../../plugged/vim-fugitive/
+set runtimepath+=../../vader.vim/
+set runtimepath+=../../vim-fugitive/
+set runtimepath+=../vader.vim/
+set runtimepath+=../vim-fugitive/
+set runtimepath+=../
 filetype plugin indent on
 syntax enable
 set nomore
