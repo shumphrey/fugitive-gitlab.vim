@@ -1,0 +1,24 @@
+name: Fugitive GitLab
+on: [push, pull_request]
+jobs:
+  vader-test-suite:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git clone Vader
+        uses: actions/checkout@v2
+        with:
+          repository: junegunn/vader.vim
+          path: vader.vim
+      - name: Git clone Fugitive
+        uses: actions/checkout@v2
+        with:
+          repository: tpope/vim-fugitive
+          path: vim-fugitive
+      - name: Check out repository code
+        uses: actions/checkout@v2
+        with:
+          path: fugitive-gitlab.vim
+      - name: Install vim
+        run: sudo apt-get install -y vim
+      - name: Run vader
+        run: vim -Es -Nu fugitive-gitlab.vim/test/vimrc -c "Vader! fugitive-gitlab.vim/test/*" 2>&1

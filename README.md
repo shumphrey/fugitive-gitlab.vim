@@ -1,6 +1,6 @@
 # fugitive-gitlab.vim
 
-[![Build Status](https://travis-ci.org/shumphrey/fugitive-gitlab.vim.svg?branch=master)](https://travis-ci.org/shumphrey/fugitive-gitlab.vim)
+![Build Status](https://github.com/shumphrey/fugitive-gitlab.vim/actions/workflows/vader.yml/badge.svg?branch=master)
 
 [fugitive.vim][] is undoubtedly the best Git wrapper of all time.
 
