@@ -7,6 +7,9 @@ Before:
 
     unlet! g:autoloaded_fugitive_gitlab_omnifunc
     runtime autoload/fugitive.vim
+    runtime autoload/gitlab/utils.vim
+    runtime autoload/gitlab/api.vim
+    runtime autoload/gitlab/fugitive.vim
     runtime autoload/gitlab/omnifunc.vim
 
     unlet! b:post_url
