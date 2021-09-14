@@ -4,7 +4,7 @@ endif
 let g:autoloaded_fugitive_gitlab_utils = 1
 
 function! gitlab#utils#throw(string) abort
-    let v:errmsg = 'gitlab: '.a:string
+    let v:errmsg = 'GitLab: '.a:string
     throw v:errmsg
 endfunction
 
@@ -27,7 +27,7 @@ function! gitlab#utils#split_remote(remote) abort
     let homepage = gitlab#fugitive#homepage_for_remote(a:remote)
 
     if empty(homepage)
-        call gitlab#utils#throw('Not a gitlab repo')
+        call gitlab#utils#throw((len(a:remote) ? a:remote : 'origin') . ' is not a GitLab repository')
     endif
 
     let domains = gitlab#utils#parse_gitlab_domains()
@@ -35,7 +35,7 @@ function! gitlab#utils#split_remote(remote) abort
     for [key, url] in items(domains)
         let path = substitute(homepage, '^'.url . '/', '', '')
         if path != homepage
-            let project = substitute(path, '/', '%2F', 'g')
+            let project = path
             let root = url
             let domain = key
             break

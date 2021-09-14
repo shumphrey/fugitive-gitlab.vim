@@ -1,0 +1,194 @@
+Before:
+    Save g:fugitive_gitlab_domains
+    Save g:gitlab_api_keys
+
+    let g:fugitive_gitlab_domains = ['https://my.gitlab.com']
+    let g:gitlab_api_keys = {'my.gitlab.com': 'test'}
+    unlet! g:loaded_fugitive_gitlab
+    unlet! g:autoloaded_fugitive_gitlab_utils
+    unlet! g:autoloaded_fugitive_gitlab_api
+    runtime plugin/gitlab.vim
+    runtime autoload/gitlab/utils.vim
+    runtime autoload/gitlab/api.vim
+    unlet! b:post_url
+    unlet! b:post_headers
+    unlet! b:post_a000
+    unlet! b:gitlab_post_result
+    function! Post(url, headers, ...) abort
+        let b:post_url = a:url
+        let b:post_headers = a:headers
+        let b:post_a000 = a:000
+
+        return b:gitlab_post_result
+    endfunction
+
+After:
+    Restore g:fugitive_gitlab_domains
+    Restore g:gitlab_api_keys
+    delfunction Post
+
+Execute (API - Groups - List):
+    let expected_url = 'https://my.gitlab.com/api/v4/groups?per_page=100'
+
+    let b:gitlab_post_result = '[]'
+    let res = gitlab#api#list_groups('my.gitlab.com')
+
+    AssertEqual expected_url, b:post_url
+    AssertEqual [], res
+
+Execute (API - Issues - List All Issues):
+    let expected_url = 'https://my.gitlab.com/api/v4/issues?scope=all&state=opened&per_page=100'
+
+    let b:gitlab_post_result = '[]'
+    let res = gitlab#api#list_issues('my.gitlab.com')
+
+    AssertEqual expected_url, b:post_url
+    AssertEqual [], res
+
+Execute (API - Issues - List Group Issues):
+    let expected_url = 'https://my.gitlab.com/api/v4/groups/mygroup/issues?scope=all&state=opened&per_page=100'
+
+    let b:gitlab_post_result = '[]'
+    let res = gitlab#api#list_group_issues('my.gitlab.com', 'mygroup')
+
+    AssertEqual expected_url, b:post_url
+    AssertEqual [], res
+
+Execute (API - Issues - List Project Issues):
+    let expected_url = 'https://my.gitlab.com/api/v4/projects/mygroup%2Fmyproject/issues?scope=all&state=opened&per_page=100'
+
+    let b:gitlab_post_result = '[]'
+    let res = gitlab#api#list_project_issues('my.gitlab.com', 'mygroup/myproject')
+
+    AssertEqual expected_url, b:post_url
+    AssertEqual [], res
+
+Execute (API - Issues - List Project Members):
+    let expected_url = 'https://my.gitlab.com/api/v4/projects/mygroup%2Fmyproject/members/all?per_page=100'
+
+    let b:gitlab_post_result = '[]'
+    let res = gitlab#api#list_project_members('my.gitlab.com', 'mygroup/myproject')
+
+    AssertEqual expected_url, b:post_url
+    AssertEqual [], res
+
+Execute (API - Issues - Create Project Issue):
+    let expected_url = 'https://my.gitlab.com/api/v4/projects/mygroup%2Fmyproject/issues'
+    let b:gitlab_post_result = '{ "project_id" : 4, "id" : 84, "created_at" : "2016-01-07T12:44:33.959Z", "iid" : 14, "title" : "A test issue", "state" : "opened", "assignees" : [], "assignee" : null, "type" : "ISSUE", "labels" : [ "bug" ], "upvotes": 4, "downvotes": 0, "merge_requests_count": 0, "author" : { "name" : "Alexandra Bashirian", "avatar_url" : null, "state" : "active", "web_url" : "https://my.gitlab.com/eileen.lowe", "id" : 18, "username" : "eileen.lowe" }, "description" : "A test description", "updated_at" : "2016-01-07T12:44:33.959Z", "closed_at" : null, "closed_by" : null, "milestone" : null, "subscribed" : true, "user_notes_count": 0, "due_date": null, "web_url": "http://my.gitlab.com/my-group/my-project/issues/14", "references": { "short": "#14", "relative": "#14", "full": "mygroup/myproject#14" }, "time_stats": { "time_estimate": 0, "total_time_spent": 0, "human_time_estimate": null, "human_total_time_spent": null }, "confidential": false, "discussion_locked": false, "issue_type": "issue", "_links": { "self": "http://my.gitlab.com/api/v4/projects/1/issues/2", "notes": "http://my.gitlab.com/api/v4/projects/1/issues/2/notes", "award_emoji": "http://my.gitlab.com/api/v4/projects/1/issues/2/award_emoji", "project": "http://my.gitlab.com/api/v4/projects/1" }, "task_completion_status":{ "count":0, "completed_count":0 } }'
+
+    let options = {
+    \  'title': 'A test issue',
+    \  'description': 'A test description',
+    \  'issue_type': 'issue',
+    \  'labels': 'bug,beginner',
+    \}
+    let res = gitlab#api#create_project_issue('my.gitlab.com', 'mygroup/myproject', options)
+
+    AssertEqual expected_url, b:post_url
+    AssertEqual type(''), type(b:post_a000[0]), 'Get a string of post data'
+    AssertEqual json_decode(b:gitlab_post_result), res
+    let data = json_decode(b:post_a000[0])
+    let expected = options
+    AssertEqual expected, data
+
+
+Execute (API - Repository - List Repository Contributors):
+    let expected_url = 'https://my.gitlab.com/api/v4/projects/mygroup%2Fmyproject/repository/contributors?per_page=100'
+
+    let b:gitlab_post_result = '[]'
+    let res = gitlab#api#list_repository_contributors('my.gitlab.com', 'mygroup/myproject')
+
+    AssertEqual expected_url, b:post_url
+    AssertEqual [], res
+
+Execute (API - Snippets - List snippets):
+    let expected_url = 'https://my.gitlab.com/api/v4/snippets?per_page=100'
+
+    let b:gitlab_post_result = '[]'
+
+    let res = gitlab#api#list_snippets('my.gitlab.com')
+    AssertEqual expected_url, b:post_url
+    AssertEqual [], res
+
+Execute (API - Snippets - Create user snippet):
+    let expected_url = 'https://my.gitlab.com/api/v4/snippets'
+    let expected_method = 'POST'
+
+    let b:gitlab_post_result = '[{}]'
+
+    let res = gitlab#api#create_user_snippet('my.gitlab.com', 'some text')
+    AssertEqual expected_url, b:post_url
+    AssertEqual expected_method, b:post_a000[1]
+    AssertEqual type(''), type(b:post_a000[0]), 'Get a string of post data'
+    AssertEqual [{}], res
+    let data = json_decode(b:post_a000[0])
+    let expected = {'files':[{'file_path':'[Vader-workbench]','action':'create','content':'some text'}],'description':'fugitive-gitlab generated snippet','visibility':'private','title':'[Vader-workbench]'}
+    AssertEqual expected, data
+
+Execute (API - Snippets - Update user snippet):
+    let expected_url = 'https://my.gitlab.com/api/v4/snippets/1234'
+    let expected_method = 'PUT'
+
+    let b:gitlab_post_result = '[{}]'
+
+    let res = gitlab#api#create_user_snippet('my.gitlab.com', 'some text', { 'snippet_id': '1234', 'name': 'foo.vim' })
+    AssertEqual expected_url, b:post_url
+    AssertEqual expected_method, b:post_a000[1]
+    AssertEqual type(''), type(b:post_a000[0]), 'Get a string of post data'
+    AssertEqual [{}], res
+    let data = json_decode(b:post_a000[0])
+    let expected = {'files':[{'file_path':'foo.vim','action':'update','content':'some text'}]}
+    AssertEqual expected, data
+
+Execute (API - Snippets - Delete user snippet):
+    let expected_url = 'https://my.gitlab.com/api/v4/snippets/1234'
+    let expected_method = 'DELETE'
+    let b:gitlab_post_result = 0
+
+    let res = gitlab#api#delete_user_snippet('my.gitlab.com', '1234')
+
+    AssertEqual expected_url, b:post_url
+    AssertEqual expected_method, b:post_a000[1]
+    AssertEqual 0, res, 'Get ok response'
+
+
+Execute (API - Snippets - Create project snippet):
+    let expected_url = 'https://my.gitlab.com/api/v4/projects/shumphrey%2Ffugitive-gitlab.vim/snippets'
+    let expected_method = 'POST'
+
+    let b:gitlab_post_result = '[{}]'
+
+    let res = gitlab#api#create_project_snippet('my.gitlab.com', 'shumphrey/fugitive-gitlab.vim', 'some text')
+    AssertEqual expected_url, b:post_url
+    AssertEqual expected_method, b:post_a000[1]
+    AssertEqual type(''), type(b:post_a000[0]), 'Get a string of post data'
+    AssertEqual [{}], res
+    let data = json_decode(b:post_a000[0])
+    let expected = {'files':[{'file_path':'[Vader-workbench]','action':'create','content':'some text'}],'description':'fugitive-gitlab generated snippet','visibility':'private','title':'[Vader-workbench]'}
+    AssertEqual expected, data
+
+Execute (API - Snippets - Update project snippet):
+    let expected_url = 'https://my.gitlab.com/api/v4/projects/shumphrey%2Ffugitive-gitlab.vim/snippets/1234'
+    let expected_method = 'PUT'
+
+    let b:gitlab_post_result = '[{}]'
+
+    let res = gitlab#api#create_project_snippet('my.gitlab.com', 'shumphrey/fugitive-gitlab.vim', 'some text', { 'snippet_id': '1234', 'name': 'foo.vim' })
+    AssertEqual expected_url, b:post_url
+    AssertEqual expected_method, b:post_a000[1]
+    AssertEqual type(''), type(b:post_a000[0]), 'Get a string of post data'
+    AssertEqual [{}], res
+    let data = json_decode(b:post_a000[0])
+    let expected = {'files':[{'file_path':'foo.vim','action':'update','content':'some text'}]}
+    AssertEqual expected, data
+
+Execute (API - Snippets - Delete project snippet):
+    let expected_url = 'https://my.gitlab.com/api/v4/projects/shumphrey%2Ffugitive-gitlab.vim/snippets/1234'
+    let expected_method = 'DELETE'
+    let b:gitlab_post_result = 0
+
+    let res = gitlab#api#delete_project_snippet('my.gitlab.com', 'shumphrey/fugitive-gitlab.vim', '1234')
+
+    AssertEqual expected_url, b:post_url
+    AssertEqual expected_method, b:post_a000[1]
+    AssertEqual 0, res, 'Get ok response'

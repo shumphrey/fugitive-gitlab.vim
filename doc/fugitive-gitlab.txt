@@ -6,12 +6,17 @@ License: Same terms as Vim itself (see |license|)
 INTRODUCTION                                    *fugitive-gitlab*
 
 This plugin to fugitive allows the |:GBrowse| command to
-work with gitlab.com or your private gitlab instance.
+work with gitlab.com or your private GitLab instance.
 
 See |fugitive| for documentation on |:GBrowse| documentation.
 
 Additionally use |i_CTRL-X_CTRL-O| to omni-complete GitLab issues when
 editing a commit message. This functionality is subject to change.
+
+Prefix with @ to omnicomplete members that have access to the project.
+Prefix with # to omnicomplete issues with a #\d+ output
+All other omnicompletion will list project issues with the full GitLab url to
+that issue.
 
 
 CONFIGURATION                                   *fugitive-gitlab-config*
