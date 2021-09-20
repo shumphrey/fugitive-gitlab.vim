@@ -12,7 +12,7 @@ function! gitlab#omnifunc#handler(findstart, base) abort
         let line = getline('.')[0:col('.')-1]
 
         " contains an @, lets start from there
-        let existing = substitute(matchstr(line, '\s*@[:alnum:]*$'), '^\s*', '', '')
+        let existing = substitute(matchstr(line, '\s*@[[:alnum:]]*$'), '^\s*', '', '')
         if !empty(existing)
             return col('.') - 1 - strlen(existing)
         endif
@@ -81,7 +81,7 @@ function! gitlab#omnifunc#handler(findstart, base) abort
             endif
             return map(response, '{"word": '.wordstr.', "abbr": "#".v:val.iid, "menu": v:val.title, "info": substitute(v:val.description,"\\r","","g")}')
         endif
-    catch /^\%(fugitive\|gitlab\):/
+    catch /^\%(fugitive\|GitLab\):/
         echoerr v:errmsg
     endtry
 endfunction
