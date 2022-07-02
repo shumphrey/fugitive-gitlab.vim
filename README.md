@@ -57,8 +57,3 @@ API features require a GitLab instance with v4 of the API.
 > Why doesn't this plugin have a pun name?
 
 I couldn't think of one.
-
-## License
-
-Copyright (c) Steven Humphrey.  Distributed under the same terms as Vim itself.
-See `:help license`.
