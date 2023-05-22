@@ -14,6 +14,10 @@ function! gitlab#fugitive#handler(opts, ...)
         return ''
     endif
 
+    if !exists('g:fugitive_gitlab_oldstyle_urls')
+        let root = root . '/-'
+    endif
+
     " work out what branch/commit/tag/etc we're on
     " if file is a git/ref, we can go to a /commits gitlab url
     " If the branch/tag doesn't exist upstream, the URL won't be valid
@@ -30,8 +34,9 @@ function! gitlab#fugitive#handler(opts, ...)
 
     let commit = a:opts.commit
 
-    " If buffer contains directory not file, return a /tree url
+    " All paths re-verified with gitlab.com on 22-05-2023
     let path = get(a:opts, 'path', '')
+    " If buffer contains directory not file, return a /tree url
     if get(a:opts, 'type', '') ==# 'tree' || get(a:opts, 'path', '') =~# '/$'
         let url = substitute(root . '/tree/' . commit . '/' . path,'/$','', '')
     elseif get(a:opts, 'type', '') ==# 'blob' || path =~# '[^/]$'
