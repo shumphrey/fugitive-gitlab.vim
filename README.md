@@ -54,6 +54,10 @@ API features require a GitLab instance with v4 of the API.
 
     set completeopt-=preview
 
+> :GBrowse produces 404s on my old self hosted GitLab
+
+    set g:fugitive_gitlab_oldstyle_urls = 1
+
 > Why doesn't this plugin have a pun name?
 
 I couldn't think of one.
