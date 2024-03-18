@@ -70,6 +70,8 @@ function! gitlab#fugitive#homepage_for_remote(url) abort
 
     if empty(match)
         return ''
+    elseif has_key(domains, match[1] . 'git@' . match[2])
+        let key = match[1] . 'git@' . match[2]
     elseif has_key(domains, match[1] . match[2])
         let key = match[1] . match[2]
     elseif has_key(domains, match[2])

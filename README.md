@@ -24,7 +24,7 @@ To use private GitLab instances, add the following to your .vimrc
 If the private GitLab instance uses different URLs, for example, one for SSH
 and another for HTTPS, instead add the following to your .vimrc
 
-    let g:fugitive_gitlab_domains = {'ssh://my-ssh.gitlab.com': 'https://my.gitlab.com'}
+    let g:fugitive_gitlab_domains = {'my-ssh.gitlab.com': 'https://my.gitlab.com'}
 
 Fugitive command `:GBrowse` will now work with GitLab URLs.
 
