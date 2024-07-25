@@ -117,3 +117,19 @@ Execute (gitlab#fugitive#homepage_for_remote - verbose ssh:// with user and port
     let expected = 'https://my.gitlab.com:3456/shumphrey/fugitive-gitlab.vim'
     let url = gitlab#fugitive#homepage_for_remote('ssh://git@my.gitlab.com:12345/shumphrey/fugitive-gitlab.vim.git')
     AssertEqual url, expected
+
+Execute (gitlab#fugitive#homepage_for_remote - git+ssh://):
+    let g:fugitive_gitlab_domains = {
+      \   'git+ssh://my.gitlab.com': 'https://my.gitlab.com',
+      \ }
+    let expected = 'https://my.gitlab.com/shumphrey/fugitive-gitlab.vim'
+    let url = gitlab#fugitive#homepage_for_remote('git+ssh://my.gitlab.com/shumphrey/fugitive-gitlab.vim.git')
+    AssertEqual url, expected
+
+Execute (gitlab#fugitive#homepage_for_remote - git+ssh:// with user and port):
+    let g:fugitive_gitlab_domains = {
+      \   'git+ssh://git@my.gitlab.com:12345': 'https://my.gitlab.com:3456',
+      \ }
+    let expected = 'https://my.gitlab.com:3456/shumphrey/fugitive-gitlab.vim'
+    let url = gitlab#fugitive#homepage_for_remote('git+ssh://git@my.gitlab.com:12345/shumphrey/fugitive-gitlab.vim.git')
+    AssertEqual url, expected
