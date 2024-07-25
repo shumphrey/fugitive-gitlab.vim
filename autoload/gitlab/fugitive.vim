@@ -59,7 +59,7 @@ function! gitlab#fugitive#homepage_for_remote(url) abort
     " https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols
     " [full_url, scheme, host_with_port, host, path]
     if a:url =~# '://'
-        let match = matchlist(a:url, '^\(https\=://\|git://\|ssh://\)\%([^@/]\+@\)\=\(\([^/:]\+\)\%(:\d\+\)\=\)/\(.\{-\}\)\%(\.git\)\=/\=$')
+        let match = matchlist(a:url, '^\(https\=://\|git://\|ssh://\|git+ssh://\)\%([^@/]\+@\)\=\(\([^/:]\+\)\%(:\d\+\)\=\)/\(.\{-\}\)\%(\.git\)\=/\=$')
     else
         let match = matchlist(a:url, '^\([^@/]\+@\)\=\(\([^:/]\+\)\):\(.\{-\}\)\%(\.git\)\=/\=$')
         if empty(match)
