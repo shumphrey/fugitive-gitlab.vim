@@ -13,7 +13,7 @@
 " e.g.
 "   let g:fugitive_gitlab_domains = ['https://gitlab.mydomain.com']
 "
-" Known to work with gitlab.com 14.0.10 on 2021-09-11
+" Verified working with current gitlab.com in 2024
 
 if exists('g:loaded_fugitive_gitlab')
     finish
