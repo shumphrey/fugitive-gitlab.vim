@@ -30,7 +30,7 @@ Fugitive command `:GBrowse` will now work with GitLab URLs.
 
 [Curl](http://curl.haxx.se/) is required for features
 that use the GitLab API (i.e., `:GBrowse` doesn't need it).
-[Generate a personal access token](https://gitlab.com/profile/personal_access_tokens)
+[Generate a personal access token](https://gitlab.com/-/user_settings/personal_access_tokens)
 with api permissions and add it to your vimrc
 
     let g:gitlab_api_keys = {'gitlab.com': 'myaccesstoken'}
