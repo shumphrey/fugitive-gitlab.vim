@@ -33,7 +33,7 @@ and project/group members, you will need to create a GitLab access token
 https://gitlab.com/profile/personal_access_tokens
 with api permissions.
 
-  let g:gitlab_api_keys = {'gitlab.com', 'token', 'gitlab.mydomain.com': 'token2'}
+  let g:gitlab_api_keys = {'gitlab.com': 'token', 'gitlab.mydomain.com': 'token2'}
 
 COMMANDS                                        *fugitive-gitlab-commands*
 
